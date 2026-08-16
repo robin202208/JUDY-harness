@@ -1,13 +1,13 @@
 {
   "name": "@deepseek-ai/dsh-shell",
-  "description": "Abstract bash executor seam (ctx.shell) for the DeepSeek Harness",
+  "description": "Abstract bash executor seam (ctx.shell) for the JUDY",
   "version": "0.1.0-rc.5",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/robin202208/JUDY-harness.git",
     "directory": "packages/shell/shell"
   },
   "type": "module",

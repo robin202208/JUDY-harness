@@ -12,7 +12,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
-import { DeepSeekHarness, type HarnessNotification } from '@deepseek-ai/dsh-sdk-client'
+import { JudyHarness, type HarnessNotification } from '@deepseek-ai/dsh-sdk-client'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import { SessionId, type SessionEvent, type TurnEndReason } from '@deepseek-ai/dsh-session'
 import type { SubagentResult, SubagentRun, SubagentStartRequest, SubagentStopReason } from '@deepseek-ai/dsh-subagent'
@@ -115,7 +115,7 @@ export async function startSdkRun(request: SubagentStartRequest, spec: SdkRunSpe
   // (minted below, private to the wire) exists only inside the child process.
   const id = SessionId(randomUUID())
 
-  const harness = new DeepSeekHarness({
+  const harness = new JudyHarness({
     launch: {
       command: spec.command,
       args: spec.args,

@@ -11,8 +11,8 @@ from .models import JsonObject, Notification
 
 
 @dataclass(slots=True)
-class DeepSeekHarnessConfig:
-    """Configuration for launching the local DeepSeek Harness SDK runtime.
+class JudyHarnessConfig:
+    """Configuration for launching the local JUDY SDK runtime.
 
     The runtime inherits the caller's environment by default, so existing
     DEEPSEEK_API_KEY and DEEPSEEK_BASE_URL settings keep working. Use ``env`` to
@@ -45,18 +45,18 @@ class RunResult:
     session_root: str | None = None
 
 
-class DeepSeekHarness:
-    """Reusable synchronous SDK for running DeepSeek Harness agent turns.
+class JudyHarness:
+    """Reusable synchronous SDK for running JUDY agent turns.
 
     The runtime subprocess starts lazily and remains owned by this instance
     across calls to :meth:`run`. Use the instance as a context manager, or call
     :meth:`close` explicitly when finished, so the subprocess is always reaped.
     """
 
-    def __init__(self, config: DeepSeekHarnessConfig | None = None, **kwargs: object) -> None:
+    def __init__(self, config: JudyHarnessConfig | None = None, **kwargs: object) -> None:
         if config is not None and kwargs:
-            raise TypeError("pass either DeepSeekHarnessConfig or keyword options, not both")
-        self.config = config or DeepSeekHarnessConfig(**kwargs)
+            raise TypeError("pass either JudyHarnessConfig or keyword options, not both")
+        self.config = config or JudyHarnessConfig(**kwargs)
         cwd = str(Path(self.config.cwd or Path.cwd()).resolve())
         runtime_cwd = str(Path(self.config.runtime_cwd).resolve()) if self.config.runtime_cwd is not None else cwd
         self._cwd = cwd
@@ -83,7 +83,7 @@ class DeepSeekHarness:
         )
         self._initialized = False
 
-    def __enter__(self) -> "DeepSeekHarness":
+    def __enter__(self) -> "JudyHarness":
         self.start()
         return self
 
@@ -125,7 +125,7 @@ class DeepSeekHarness:
 
 
 class Session:
-    def __init__(self, harness: DeepSeekHarness, session_id: str) -> None:
+    def __init__(self, harness: JudyHarness, session_id: str) -> None:
         self.harness = harness
         self.id = session_id
 

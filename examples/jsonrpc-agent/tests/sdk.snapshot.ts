@@ -27,7 +27,7 @@ import {
   type NormalizeContext,
 } from '@deepseek-ai/dsh-acp-snapshot'
 import { resolveExampleLaunch } from '@deepseek-ai/dsh-loader-smoke'
-import { DeepSeekHarness, type HarnessNotification, type RunResult } from '@deepseek-ai/dsh-sdk-client'
+import { JudyHarness, type HarnessNotification, type RunResult } from '@deepseek-ai/dsh-sdk-client'
 
 const testsDir = dirOf(import.meta.url)
 const snapshotsDir = join(testsDir, 'snapshots')
@@ -292,7 +292,7 @@ async function runScenario(scenario: SdkScenario): Promise<{
     ...scenario.environment,
   }
 
-  const harness = new DeepSeekHarness({
+  const harness = new JudyHarness({
     launch: {
       command: launch.command,
       args: launch.args,

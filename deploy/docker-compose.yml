@@ -1,0 +1,45 @@
+# JUDY 私有化一键部署（Docker Compose）
+#
+# 用法（在仓库根目录）：
+#   cp deploy/.env.example deploy/.env   # 填写模型密钥
+#   docker compose -f deploy/docker-compose.yml up -d --build
+#   # 浏览器打开 http://<服务器IP>:3080
+#
+# 接入本地/国产模型：启用 ollama 服务后把 DEEPSEEK_BASE_URL 指向它即可。
+
+services:
+  judy:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: judy-harness:latest
+    container_name: judy
+    ports:
+      - "3080:3080"        # 对外端口；想用 80 端口就改成 "80:3080"
+    environment:
+      # DeepSeek 官方 API 密钥（platform.deepseek.com 获取）
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      # 模型端点基地址；留空 = DeepSeek 官方 API。
+      # 指向任意 OpenAI 兼容端点即可接入本地/国产模型：
+      #   本地 Ollama： http://ollama:11434/v1
+      #   内网 vLLM：   http://<vllm-host>:8000/v1
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-}
+    volumes:
+      - judy-data:/data/dsh   # 会话/设置/预设持久化
+    restart: unless-stopped
+
+  # 可选：完全本地的模型服务（Ollama）。
+  # 启用方式：docker compose -f deploy/docker-compose.yml --profile local-model up -d
+  # 然后把 DEEPSEEK_BASE_URL 设为 http://ollama:11434/v1，DEEPSEEK_API_KEY 随意填，
+  # 并在 JUDY 界面中选择已 pull 的模型（如 qwen2.5、glm4）。
+  ollama:
+    image: ollama/ollama:latest
+    container_name: judy-ollama
+    profiles: ["local-model"]
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  judy-data:
+  ollama-data:

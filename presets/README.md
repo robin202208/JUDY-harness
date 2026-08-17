@@ -13,6 +13,7 @@
 | `data-analyst` | 数据分析师 | 数据清洗、统计、可视化与结构化报告 | skill |
 | `tutor` | 教学辅导 | 苏格拉底式教学、知识拆解、出题与讲评 | skill |
 | `code-reviewer` | 代码审查 | 正确性/安全/性能/可维护性四维审查，分级意见 | skill |
+| `im-integration` | IM 接入 | 企业微信/钉钉群机器人消息发送（文本/markdown），可接入通知、报警、日报 | 自定义插件 + skill |
 
 ## 一键安装
 

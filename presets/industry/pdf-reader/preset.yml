@@ -1,0 +1,2 @@
+name: PDF 阅读器
+description: 标准编程 Agent + PDF 阅读能力：可用 read_pdf 工具按路径提取 PDF 的纯文本（论文、文档、报告等）。

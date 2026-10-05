@@ -50,8 +50,8 @@ jobs:
         with:
           client-id: ${{ vars.DSH_ISSUE_APP_CLIENT_ID }}
           private-key: ${{ secrets.DSH_ISSUE_APP_PRIVATE_KEY }}
-          owner: judy-harness
-          repositories: judy-harness
+          owner: robin202208
+          repositories: JUDY-harness
       - name: Handle repository event
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}

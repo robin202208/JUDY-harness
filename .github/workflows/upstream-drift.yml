@@ -1,0 +1,112 @@
+# JUDY ↔ 上游同步工作流
+#
+# 三个目的：
+#   1. 每周告诉你「落后上游多少」——把不可见的漂移变成数字
+#   2. 每次 PR 校验 UPSTREAM-DELTA.md 是最新的
+#   3. 不改动任何业务代码，纯观测
+#
+# 落地位置：.github/workflows/upstream-drift.yml
+# 依赖文件：UPSTREAM.md（基线）、scripts/judy-upstream-delta.mjs
+
+name: Upstream drift
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # 每周一 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  UPSTREAM_REPO: https://github.com/deepseek-ai/deepseek-harness.git
+
+jobs:
+  drift:
+    name: 测量与上游的漂移
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 读取基线
+        id: baseline
+        run: |
+          TAG=$(grep -E '^\| 基线 tag' UPSTREAM.md | awk -F'|' '{gsub(/ /,"",$3); print $3}')
+          COMMIT=$(grep -E '^\| 基线 commit' UPSTREAM.md | awk -F'|' '{gsub(/ /,"",$3); print $3}')
+          echo "tag=$TAG"       >> "$GITHUB_OUTPUT"
+          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
+          echo "基线: $TAG ($COMMIT)"
+
+      - name: 拉取上游
+        run: |
+          git remote add upstream "$UPSTREAM_REPO" 2>/dev/null || true
+          git fetch --tags --depth=200 upstream
+
+      - name: 计算落后提交数
+        id: behind
+        run: |
+          COMMIT='${{ steps.baseline.outputs.commit }}'
+          if git cat-file -e "$COMMIT" 2>/dev/null; then
+            N=$(git rev-list --count "$COMMIT"..upstream/master)
+          else
+            N="unknown"
+          fi
+          echo "behind=$N" >> "$GITHUB_OUTPUT"
+          echo "落后 $N 个提交"
+
+      - name: 检出上游基线做对比
+        run: |
+          git worktree add --detach /tmp/upstream-base '${{ steps.baseline.outputs.tag }}'
+
+      - name: 生成差异清单
+        run: |
+          node scripts/judy-upstream-delta.mjs \
+            --upstream /tmp/upstream-base \
+            --judy . \
+            --markdown > /tmp/delta-new.md
+          # 只取统计表做摘要（避免整份文件进 summary）
+          sed -n '/## 总览/,/^$/p' /tmp/delta-new.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 校验已提交的清单是否过期
+        run: |
+          if ! diff -q UPSTREAM-DELTA.md /tmp/delta-new.md >/dev/null 2>&1; then
+            echo "::warning::UPSTREAM-DELTA.md 已过期，请本地重新生成并提交"
+            diff UPSTREAM-DELTA.md /tmp/delta-new.md | head -40 || true
+          else
+            echo "UPSTREAM-DELTA.md 是最新的"
+          fi
+
+      - name: 落后过多时开 issue 提醒
+        if: steps.behind.outputs.behind != 'unknown' && steps.behind.outputs.behind > 100
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const behind = '${{ steps.behind.outputs.behind }}'
+            const tag = '${{ steps.baseline.outputs.tag }}'
+            const title = `上游漂移提醒：落后 ${behind} 个提交`
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'upstream-drift',
+            })
+            if (issues.length) {
+              core.info(`已有未关闭的漂移 issue #${issues[0].number}，跳过`)
+              return
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title,
+              labels: ['upstream-drift'],
+              body: [
+                `基线 \`${tag}\` 之后上游已有 **${behind}** 个提交。`,
+                '',
+                '本 issue 由 `.github/workflows/upstream-drift.yml` 自动创建。',
+                '',
+                '处理步骤见 `UPSTREAM.md` 的「如何更新这个基线」。',
+                '关闭前请确认：要么更新了基线，要么记录了下一次评估时间。',
+              ].join('\n'),
+            })

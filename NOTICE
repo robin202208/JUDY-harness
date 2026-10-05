@@ -1,0 +1,32 @@
+# NOTICE
+
+JUDY (https://www.judy.run/) is a derivative work of **DeepSeek Harness**.
+
+- Upstream repository: https://github.com/deepseek-ai/deepseek-harness
+- Upstream license: MIT — Copyright (c) 2026 DeepSeek
+- Upstream license text: preserved verbatim in this repository's [`LICENSE`](LICENSE)
+
+## What originates from upstream
+
+The Cordis runtime, the plugin/service architecture, and the majority of the
+`packages/` tree originate from DeepSeek Harness.
+
+The Cordis framework and its foundation libraries are source-vendored rather
+than consumed from npm; exact upstream commits and local modifications are
+recorded in [`vendor/README.md`](vendor/README.md).
+
+## What JUDY adds
+
+- `presets/` — industry agent presets and their plugins
+- `deploy/` — Docker deployment
+- `website/` — the JUDY site
+- Product branding, theming, and default configuration
+
+## Upstream sync point
+
+The upstream commit this tree is based on is pinned in [`UPSTREAM.md`](UPSTREAM.md).
+
+## Third-party dependencies
+
+Dependency licenses are disclosed separately in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

@@ -2,6 +2,10 @@
 
 [English](README.md) | 中文
 
+> **上游归属声明。** JUDY 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
+> （MIT，Copyright (c) 2026 DeepSeek）的二次开发分支，其 Cordis 运行时与插件／服务架构来自上游。
+> 上游来源与本项目自身贡献的完整说明见 [NOTICE](NOTICE)。
+
 JUDY（`dsh`）是由 [JUDY AI](www.judy.run) 开发的开源 agent harness（智能体框架）。
 
 它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。

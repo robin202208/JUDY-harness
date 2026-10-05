@@ -2,6 +2,12 @@
 
 English | [中文](README.zh.md)
 
+> **Upstream attribution.** JUDY is a derivative work of
+> [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
+> (MIT, Copyright (c) 2026 DeepSeek), which supplies the Cordis runtime and the
+> plugin/service architecture it is built on. See [NOTICE](NOTICE) for the full
+> disclosure of what originates upstream and what JUDY adds.
+
 JUDY (`dsh`) is an open-source agent harness developed by [JUDY AI].
 
 It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).

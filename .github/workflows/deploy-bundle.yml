@@ -1,0 +1,62 @@
+# Build one self-contained linux-x64 runtime bundle for the private deployment
+# on 182.92.224.54 (2 vCPU / 1.8 GB), where a full pnpm build would OOM the
+# box's other production services.
+#
+# Push to the `deploy/aliyun` branch (or dispatch manually) to produce
+# `judy-runtime-linux-x64`: a tar.gz of the workspace after `pnpm run build`,
+# which is exactly the tree `deploy/Dockerfile` runs as `pnpm dsh web`.
+name: Deploy bundle (linux-x64)
+
+on:
+  push:
+    branches: [deploy/aliyun]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-bundle-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DSH_TELEMETRY_DISABLED: '1'
+  NODE_OPTIONS: --max-old-space-size=8192
+
+jobs:
+  bundle:
+    name: Build runtime bundle
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install workspace
+        run: pnpm install --frozen-lockfile
+
+      - name: Build lib + web frontend
+        run: pnpm run build
+
+      - name: Verify the frontend dist exists
+        run: |
+          test -f apps/web/dist/index.html
+          du -sh apps/web/dist
+
+      - name: Pack runtime tree
+        run: |
+          rm -rf .git
+          tar -czf /tmp/judy-runtime.tar.gz .
+          ls -lh /tmp/judy-runtime.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: judy-runtime-linux-x64
+          path: /tmp/judy-runtime.tar.gz
+          retention-days: 14

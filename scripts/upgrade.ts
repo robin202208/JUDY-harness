@@ -55,10 +55,16 @@ function scriptExists(name: string): boolean {
   }
 }
 
-function patchFiles(): string[] {
-  // pnpm patch files live in patches/*.patch; ours get their own directory so
-  // replay never tries to apply a dependency patch.
-  const directory = join(ROOT, 'patches', 'upgrade')
+/**
+ * Replayable patch files, in application order.
+ *
+ * pnpm patch files live in `patches/*.patch`; ours get their own directory so a
+ * replay never tries to apply a dependency patch.
+ * @param root - Repository root to read.
+ * @returns repository-relative patch paths, sorted so replay order is stable.
+ */
+export function patchFiles(root: string = ROOT): string[] {
+  const directory = join(root, 'patches', 'upgrade')
   if (!existsSync(directory)) return []
   return readdirSync(directory)
     .filter(name => name.endsWith('.patch'))
@@ -132,20 +138,28 @@ function runContractCheck(candidate: Snapshot): StepResult {
   return { name: 'contract diff', ok: breaking === 0, ms: 0, detail: `${String(breaking)} breaking` }
 }
 
-function appendLedger(row: Record<string, string>): void {
-  const path = join(ROOT, 'contracts', 'upgrade-ledger.md')
-  if (!existsSync(path)) {
-    process.stdout.write('ledger: contracts/upgrade-ledger.md missing; skipped the row\n')
-    return
-  }
+/**
+ * Insert one row above the ledger sentinel.
+ * @param path - Ledger file to edit.
+ * @param row - Column values; missing columns render as an em dash.
+ * @returns the appended line, or undefined when the file or sentinel is missing.
+ */
+export function appendLedgerRow(path: string, row: Record<string, string>): string | undefined {
   const columns = ['date', 'from', 'to', 'conflicts', 'levels', 'minutes', 'cause', 'prevention']
   const line = `| ${columns.map(column => row[column] ?? '—').join(' | ')} |`
+  if (!existsSync(path)) return undefined
   const source = readFileSync(path, 'utf8')
-  if (!source.includes(LEADER_SENTINEL)) {
-    process.stdout.write('ledger: sentinel missing; skipped the row\n')
+  if (!source.includes(LEADER_SENTINEL)) return undefined
+  writeFileSync(path, source.replace(LEADER_SENTINEL, `${line}\n${LEADER_SENTINEL}`))
+  return line
+}
+
+function appendLedger(row: Record<string, string>): void {
+  const line = appendLedgerRow(join(ROOT, 'contracts', 'upgrade-ledger.md'), row)
+  if (line === undefined) {
+    process.stdout.write('ledger: contracts/upgrade-ledger.md or its sentinel is missing; skipped the row\n')
     return
   }
-  writeFileSync(path, source.replace(LEADER_SENTINEL, `${line}\n${LEADER_SENTINEL}`))
   process.stdout.write(`ledger: appended ${line}\n`)
 }
 

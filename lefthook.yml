@@ -31,6 +31,10 @@ pre-commit:
       glob: '{package.json,*/package.json,*/*/package.json,*/*/*/package.json,*/*/*/*/package.json,pnpm-workspace.yaml,*/*/pnpm-workspace.yaml,pnpm-lock.yaml,vendor/README.md,python/*/pyproject.toml,scripts/gen-third-party-notices.ts,scripts/build-exe-for-python-sdk.ts}'
       run: node_modules/.bin/tsx scripts/gen-third-party-notices.ts && git add THIRD_PARTY_NOTICES.md
 
+    - name: skill bundles (staged)
+      glob: '{.agents/skills/**,.dsh/skills/**,packages/agent/preset/skills/**}'
+      run: node_modules/.bin/tsx scripts/verify-skill-bundles.ts
+
     - name: whitespace (staged)
       run: git diff --cached --check
 

@@ -1,13 +1,12 @@
 {
-  "id": "/",
-  "name": "JUDY",
-  "short_name": "JUDY",
-  "start_url": "/",
-  "scope": "/",
+  "name": "DeepSeek Harness",
+  "short_name": "DSH",
+  "start_url": "./",
+  "scope": "./",
   "display": "fullscreen",
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "favicon.svg",
       "sizes": "any",
       "type": "image/png",
       "purpose": "any"

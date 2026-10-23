@@ -1,15 +1,15 @@
 /**
- * TypeScript client SDK for the JUDY runtime: spawn the
- * `dsh-jsonrpc-agent` runtime as a subprocess and drive agent turns over
- * stdio JSON-RPC. `JudyHarness` is the high-level run API;
+ * TypeScript client SDK for the DeepSeek Harness runtime: spawn the
+ * same-version `dsh --profile sdk` runtime as a subprocess and drive agent
+ * turns over stdio JSON-RPC. `DeepSeekHarness` is the high-level run API;
  * `HarnessClient` is the lower-level protocol client. A pure library — it
- * registers nothing on a Cordis context; the runtime process it spawns is a
- * complete harness configured by its own `cordis.yml`.
+ * registers nothing on a Cordis context; named profiles and ordered patch
+ * files customize the runtime process it spawns.
  *
  * @module @deepseek-ai/dsh-sdk-client
  */
 
-export { JudyHarness, HarnessSession } from './api.ts'
+export { DeepSeekHarness, HarnessSession, validatedSessionEvent } from './api.ts'
 export type { RunOptions } from './api.ts'
 export {
   HarnessClient,
@@ -21,7 +21,8 @@ export type { NotificationSubscription } from './client.ts'
 export { JsonRpcResponseError } from '@deepseek-ai/dsh-sdk-protocol'
 export type {
   ContentBlock,
-  JudyHarnessOptions,
+  SdkPromptContentBlock,
+  DeepSeekHarnessOptions,
   HarnessClientOptions,
   HarnessNotification,
   NotificationFilter,

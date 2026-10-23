@@ -1,8 +1,8 @@
-# JUDY Python SDK
+# DeepSeek Harness Python SDK
 
 English | [中文](README.zh.md)
 
-Python subprocess SDK for driving DeepSeek Harness over newline-delimited JSON-RPC on stdio. Install `deepseek-harness-sdk`; it installs the exact same-version `deepseek-harness-runtime-bin` wheel for the current platform.
+Python subprocess SDK for driving DeepSeek Harness over newline-delimited JSON-RPC on stdio. Install `judy-harness-sdk`; it installs the exact same-version `judy-harness-runtime-bin` wheel for the current platform.
 
 ```sh
 python -m pip install judy-harness-sdk
@@ -13,8 +13,8 @@ python -m pip install judy-harness-sdk
 Download the Office runtime explicitly, then call the local API without an agent, Session, model request, API key, or Harness home:
 
 ```py
-from deepseek_harness_runtime import download_office
-from deepseek_harness.office import convert, recalculate, render_images
+from judy_harness_runtime import download_office
+from judy_harness.office import convert, recalculate, render_images
 
 download_office()
 pdf = convert("report.docx", "report.pdf")
@@ -24,7 +24,7 @@ preview = render_images("report.docx", "report-preview", pages=[1])
 
 The output file or image directory must not exist. Successful outputs belong to the caller; Kit removes failed outputs. `OfficeOptions` supplies operation limits and font preferences. Results expose typed paths, missing fonts, and image metadata. `OfficeError` retains CLI failure codes; malformed results raise `SdkProtocolError`. Recalculation does not verify business logic or Excel fidelity. Ctrl+C waits for CLI cleanup; a second interrupt forces termination and may leave partial output. Windows requires an absolute `SystemRoot` and a shared console for Ctrl+C delivery.
 
-The authoring environment is independently optional through `deepseek_harness_runtime.download_primary_runtime()`. See the [runtime reference](../sdk-runtime/README.md) for cache selection, resource activation, and download behavior. SDK startup and Office operations never acquire missing resources automatically.
+The authoring environment is independently optional through `judy_harness_runtime.download_primary_runtime()`. See the [runtime reference](../sdk-runtime/README.md) for cache selection, resource activation, and download behavior. SDK startup and Office operations never acquire missing resources automatically.
 
 ## Start a runtime
 
@@ -33,7 +33,7 @@ The Python SDK has no separate application entrypoint. It launches the bundled `
 Every launch requires an explicit Harness home. Pass `dsh_home` or provide a non-empty `DSH_HOME` in the child environment. The SDK deliberately never discovers `~/.dsh`.
 
 ```py
-from judy_harness import JudyHarness
+from judy_harness import DeepSeekHarness
 
 with DeepSeekHarness(
     dsh_home="/absolute/path/to/isolated-dsh-home",

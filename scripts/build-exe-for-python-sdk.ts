@@ -29,7 +29,7 @@ const DEPLOY_ROOT_PACKAGE = 'dsh-python-runtime-closure'
 /** The sole executable entry inside the deployed closure. */
 const ENTRY_BIN = 'runtime-bootstrap.mjs'
 /** Python-visible executable basename. */
-const OUTPUT_BASENAME = 'deepseek-harness-sdk-runtime'
+const OUTPUT_BASENAME = 'judy-harness-sdk-runtime'
 /** Default Node major; SEA mode requires at least Node 22. */
 const DEFAULT_NODE_RANGE = 'node24'
 const OUT_DIR = 'dist-exe'

@@ -75,7 +75,7 @@ class RuntimeBuildHook(BuildHookInterface):
             )
         expected_executable = matches[0][1]
         target = next(name for name, value in _PLATFORMS.items() if value[0] == platform_tag)
-        runtime_dir = Path(self.root) / "src" / "deepseek_harness_runtime" / "runtime"
+        runtime_dir = Path(self.root) / "src" / "judy_harness_runtime" / "runtime"
         runtime_files = sorted(
             (path for path in runtime_dir.iterdir() if path.name != "node") if runtime_dir.is_dir() else []
         )

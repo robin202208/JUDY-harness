@@ -7,7 +7,7 @@ import pytest
 
 from pydantic import ValidationError
 
-from deepseek_harness import DeepSeekHarness
+from judy_harness import DeepSeekHarness
 
 
 def test_session_directories_are_independent_and_relative_paths_stay_on_the_wire(tmp_path: Path) -> None:

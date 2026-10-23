@@ -1,11 +1,11 @@
-from .api import JudyHarness, JudyHarnessConfig, RunResult, Session
+from .api import DeepSeekHarness, DeepSeekHarnessConfig, RunResult, Session
 from .client import HarnessClient, HarnessConfig
 from .errors import SdkProtocolError
 from .models import IncomingRequest, InitializeResponse, JsonObject, Notification, ServerInfo
 
 __all__ = [
-    "JudyHarness",
-    "JudyHarnessConfig",
+    "DeepSeekHarness",
+    "DeepSeekHarnessConfig",
     "Session",
     "RunResult",
     "HarnessClient",

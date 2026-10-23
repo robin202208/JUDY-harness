@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from deepseek_harness import DeepSeekHarness
-from deepseek_harness.errors import JsonRpcError
+from judy_harness import DeepSeekHarness
+from judy_harness.errors import JsonRpcError
 
 
 @pytest.mark.parametrize("outcome", ["restored", "missing"])

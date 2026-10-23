@@ -7,7 +7,7 @@ import argparse
 import os
 from pathlib import Path
 
-from judy_harness import JudyHarness
+from judy_harness import DeepSeekHarness
 
 
 def main() -> None:

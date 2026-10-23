@@ -1,4 +1,4 @@
-# deepseek-harness-runtime-bin
+# judy-harness-runtime-bin
 
 English | [中文](README.zh.md)
 
@@ -6,16 +6,16 @@ Platform runtime wheel for the DeepSeek Harness Python SDK. It packages the norm
 
 ## Installed commands and artifacts
 
-The wheel installs a `dsh` console command and the `deepseek_harness_runtime` Python module. `dsh` forwards its arguments to the bundled executable and requires a non-empty `DSH_HOME`; it never falls back to `~/.dsh`.
+The wheel installs a `dsh` console command and the `judy_harness_runtime` Python module. `dsh` forwards its arguments to the bundled executable and requires a non-empty `DSH_HOME`; it never falls back to `~/.dsh`.
 
-Production executables are named `deepseek-harness-sdk-runtime-<platform>-<arch>` under the module's `runtime/` directory; Windows uses the `.exe` suffix. Linux and macOS wheels include a target-native `-rg` sidecar, Windows includes `-rg.exe`, and macOS also includes `-spawn-helper` for `node-pty`. Published targets are Linux x64, Linux arm64, macOS arm64, macOS x64, and Windows x64. The wheel tag and payload must match exactly; no Windows arm64 wheel is published.
+Production executables are named `judy-harness-sdk-runtime-<platform>-<arch>` under the module's `runtime/` directory; Windows uses the `.exe` suffix. Linux and macOS wheels include a target-native `-rg` sidecar, Windows includes `-rg.exe`, and macOS also includes `-spawn-helper` for `node-pty`. Published targets are Linux x64, Linux arm64, macOS arm64, macOS x64, and Windows x64. The wheel tag and payload must match exactly; no Windows arm64 wheel is published.
 
 The wheel carries only the executable, native execution helpers, and `<platform>-<arch>/` with `downloads.json` and the lightweight `office-skills/` tree. CPython, authoring libraries, standalone Node, pnpm, and the complete Office sidecar are optional downloads. Importing Python modules, starting SDK profiles, and processing Office files never download resources.
 
 Download either resource explicitly before using it:
 
 ```py
-from deepseek_harness_runtime import download_office, download_primary_runtime
+from judy_harness_runtime import download_office, download_primary_runtime
 
 office = download_office()
 primary_runtime = download_primary_runtime()
@@ -64,6 +64,6 @@ External profile management uses `dsh plugin --profile <name> ...`. That command
 
 Production deployment permits unused workspace patches for packages outside the runtime closure; patches for included packages must still apply successfully. This exception is confined to the deploy command; repository installation still rejects unused patches.
 
-From the repository root, `pnpm exec tsx scripts/build-exe-for-python-sdk.ts` verifies the closure, builds packages, deploys a symlink-free tree, packages the selected target, and syncs the executable and sidecars into this module. Only the target platform’s PTY prebuilds are packaged. Package README, CHANGELOG, HISTORY Markdown, source maps, and TypeScript declarations outside runtime assets are omitted. Deployment disables workspace hoisting, and packaging excludes checkout dependencies and workspace source trees outside the deployment so dependency scans cannot add development packages to the payload. Staging shares root workspace packages with nested consumers of the same pnpm dependency identity, preserving singleton services while retaining different peer resolutions. `scripts/build-python-release.py` stages release-shaped wheels at the root repository version and pins `deepseek-harness-sdk` to the exact runtime version.
+From the repository root, `pnpm exec tsx scripts/build-exe-for-python-sdk.ts` verifies the closure, builds packages, deploys a symlink-free tree, packages the selected target, and syncs the executable and sidecars into this module. Only the target platform’s PTY prebuilds are packaged. Package README, CHANGELOG, HISTORY Markdown, source maps, and TypeScript declarations outside runtime assets are omitted. Deployment disables workspace hoisting, and packaging excludes checkout dependencies and workspace source trees outside the deployment so dependency scans cannot add development packages to the payload. Staging shares root workspace packages with nested consumers of the same pnpm dependency identity, preserving singleton services while retaining different peer resolutions. `scripts/build-python-release.py` stages release-shaped wheels at the root repository version and pins `judy-harness-sdk` to the exact runtime version.
 
 The installed-wheel smoke creates a clean virtual environment outside the checkout, proves the installed distribution and executable identities, then exercises default and customized SDK profiles, external plugins, MCP, native tools, direct JSON-RPC, committed snapshots, and the real provider on trusted runs. Its Office scenario relocates the lightweight target payload, explicitly downloads the sidecar, and converts DOCX with the required platform engine: the target’s declared native engine, or WASM when no native engine is declared. See the [Python contributor workflow](../development.md) and [installed-wheel testing decision](../../.agents/notes/implemented/testing/2026-08-23-installed-python-wheel-black-box-ci.md).

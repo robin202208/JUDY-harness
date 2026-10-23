@@ -8,8 +8,8 @@ Python packages for driving JUDY as a subprocess. The client SDK communicates wi
 
 | Directory | Dist / module | Role |
 |---|---|---|
-| [sdk](sdk/README.md) | `deepseek-harness-sdk` / `deepseek_harness` | High-level turns API and lower-level JSON-RPC client |
-| [sdk-runtime](sdk-runtime/README.md) | `deepseek-harness-runtime-bin` / `deepseek_harness_runtime` | Bundled `dsh` CLI executable and native sidecars |
+| [sdk](sdk/README.md) | `judy-harness-sdk` / `judy_harness` | High-level turns API and lower-level JSON-RPC client |
+| [sdk-runtime](sdk-runtime/README.md) | `judy-harness-runtime-bin` / `judy_harness_runtime` | Bundled `dsh` CLI executable and native sidecars |
 
 ## Behavior
 

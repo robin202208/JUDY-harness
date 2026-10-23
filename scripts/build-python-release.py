@@ -144,7 +144,7 @@ def validate_release_tag(tag: str | None, version: str) -> None:
 
 
 def copy_package(source: Path, destination: Path) -> None:
-    generated_parent = source / "src" / "deepseek_harness_runtime"
+    generated_parent = source / "src" / "judy_harness_runtime"
     ignore_files = shutil.ignore_patterns(
         ".venv", ".pytest_cache", "__pycache__", "*.pyc", "dist", "node_modules",
     )
@@ -224,7 +224,7 @@ def stage_runtime(destination: Path, version: str, executable: Path, executable_
     source_directory = executable.parent
     for filename in runtime_filenames(executable_name):
         shutil.copy2(source_directory / filename, runtime_dir / filename)
-    resources = executable_name.removeprefix("deepseek-harness-sdk-runtime-").removesuffix(".exe")
+    resources = executable_name.removeprefix("judy-harness-sdk-runtime-").removesuffix(".exe")
     # Wheels materialize interpreter aliases because pip does not restore symlinks.
     shutil.copytree(source_directory / resources, runtime_dir / resources)
 
@@ -264,18 +264,18 @@ def verify_wheel(
                 f"{wheel} has license files {license_files}, expected {expected_license_files}"
             )
         runtime_payload = [
-            name for name in archive.namelist() if name.startswith("deepseek_harness_runtime/runtime/")
+            name for name in archive.namelist() if name.startswith("judy_harness_runtime/runtime/")
         ]
         if package == "runtime":
             assert platform is not None
-            resources = platform[1].removeprefix("deepseek-harness-sdk-runtime-").removesuffix(".exe")
+            resources = platform[1].removeprefix("judy-harness-sdk-runtime-").removesuffix(".exe")
             expected_files = sorted((*runtime_filenames(platform[1]), resources))
             found_files = sorted({name.split("/runtime/", 1)[1].split("/", 1)[0] for name in runtime_payload})
             if found_files != expected_files:
                 raise RuntimeError(f"{wheel} runtime payload must be {expected_files}, found {found_files}")
-            validate = runpy.run_path(str(ROOT / "python/sdk-runtime/src/deepseek_harness_runtime/_resources.py"))["validate_downloads"]
+            validate = runpy.run_path(str(ROOT / "python/sdk-runtime/src/judy_harness_runtime/_resources.py"))["validate_downloads"]
             target = next(name for name, value in PLATFORMS.items() if value == platform)
-            validate(zipfile.Path(archive, f"deepseek_harness_runtime/runtime/{resources}/"), target)
+            validate(zipfile.Path(archive, f"judy_harness_runtime/runtime/{resources}/"), target)
             for runtime_file in runtime_payload:
                 if "/" in runtime_file.split("/runtime/", 1)[1]:
                     continue

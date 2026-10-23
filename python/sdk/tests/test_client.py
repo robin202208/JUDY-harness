@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from deepseek_harness import DeepSeekHarness, HarnessClient, HarnessConfig, Notification, RunResult, SdkProtocolError
-from deepseek_harness.errors import JsonRpcError
+from judy_harness import DeepSeekHarness, HarnessClient, HarnessConfig, Notification, RunResult, SdkProtocolError
+from judy_harness.errors import JsonRpcError
 
 
 def test_high_level_sdk_runs_turn_and_preserves_auto_review_errors(tmp_path: Path) -> None:
@@ -164,7 +164,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    with JudyHarness(
+    with DeepSeekHarness(
         model="deepseek-v4-flash",
         reasoning_effort="max",
         max_tokens=4096,
@@ -316,7 +316,7 @@ for line in sys.stdin:
     )
     monkeypatch.chdir(tmp_path)
 
-    with JudyHarness(
+    with DeepSeekHarness(
         cwd=".",
         runtime_cwd=".",
         _launch_args=(sys.executable, str(script)),
@@ -952,12 +952,12 @@ for line in sys.stdin:
 
 
 def test_public_signatures_omit_unsupported_wire_parameters() -> None:
-    from judy_harness import JudyHarnessConfig, Session
+    from judy_harness import DeepSeekHarnessConfig, Session
 
     assert "session_root" not in inspect.signature(HarnessClient.initialize).parameters
     assert "system_prompt" not in inspect.signature(HarnessClient.initialize).parameters
     assert "profile" not in inspect.signature(HarnessClient.session_prompt).parameters
-    assert "profile" not in inspect.signature(JudyHarness.run).parameters
+    assert "profile" not in inspect.signature(DeepSeekHarness.run).parameters
     assert "profile" not in inspect.signature(Session.run).parameters
     assert "system_prompt" not in DeepSeekHarnessConfig.__dataclass_fields__
     assert "max_tokens" in DeepSeekHarnessConfig.__dataclass_fields__
@@ -1098,7 +1098,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    module_dir = tmp_path / "deepseek_harness_runtime"
+    module_dir = tmp_path / "judy_harness_runtime"
     module_dir.mkdir()
     (module_dir / "__init__.py").write_text(
         f"""
@@ -1108,7 +1108,7 @@ def resolve_bundled_launch_args(mode=None):
     )
 
     monkeypatch.syspath_prepend(str(tmp_path))
-    monkeypatch.delitem(sys.modules, "deepseek_harness_runtime", raising=False)
+    monkeypatch.delitem(sys.modules, "judy_harness_runtime", raising=False)
 
 
 def test_client_default_launch_uses_bundled_dsh_sdk_profile_and_explicit_home(
@@ -1172,5 +1172,5 @@ def test_client_reports_missing_bundled_runtime_dependency(monkeypatch: pytest.M
     monkeypatch.delitem(sys.modules, "judy_harness_runtime", raising=False)
     monkeypatch.setattr(sys, "path", [])
 
-    with pytest.raises(FileNotFoundError, match="Install deepseek-harness-runtime-bin"):
+    with pytest.raises(FileNotFoundError, match="Install judy-harness-runtime-bin"):
         HarnessClient(HarnessConfig(dsh_home="/explicit/home")).start()

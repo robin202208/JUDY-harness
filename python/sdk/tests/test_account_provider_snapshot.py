@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from deepseek_harness import DeepSeekHarness
+from judy_harness import DeepSeekHarness
 
 ROOT = Path(__file__).resolve().parents[3]
 CLI = ROOT / 'apps' / 'cli' / 'lib' / 'bin.js'

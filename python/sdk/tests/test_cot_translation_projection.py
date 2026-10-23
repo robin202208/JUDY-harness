@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from deepseek_harness import DeepSeekHarness
+from judy_harness import DeepSeekHarness
 
 
 EXPECTED = Path(__file__).parent / "expected" / "cot-translation-projection.json"

@@ -1,0 +1,108 @@
+name: upstream-sync
+
+# 每周一 02:00 UTC 拉上游最新 tag，做一次契约体检。
+# 目的不是自动升级，而是"上游动了，我们第一时间知道动了什么、会不会破"。
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '上游 tag（留空取最新）'
+        required: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: true
+
+jobs:
+  contract-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 解析目标 tag
+        id: target
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG=$(git ls-remote --tags --refs https://github.com/deepseek-ai/deepseek-harness.git \
+                  | awk '{print $2}' | sed 's#refs/tags/##' | grep -E '^dsh-v[0-9]' | sort -V | tail -1)
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "上游目标：$TAG"
+
+      - name: 浅克隆上游该版本
+        run: |
+          git clone --quiet --depth 1 --branch "${{ steps.target.outputs.tag }}" \
+            https://github.com/deepseek-ai/deepseek-harness.git /tmp/upstream
+          du -sh /tmp/upstream
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装本仓库依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 品牌层自检（手改 manifest 会在这里失败）
+        run: pnpm exec tsx scripts/brand.ts --check
+
+      - name: 快照上游契约面
+        run: pnpm exec tsx scripts/contracts.ts snapshot --repo /tmp/upstream -o /tmp/after.json
+
+      - name: 与基线做契约 diff
+        id: diff
+        run: |
+          set +e
+          pnpm exec tsx scripts/contracts.ts diff contracts/baseline.json /tmp/after.json \
+            --fail-on breaking > /tmp/report.md 2>&1
+          code=$?
+          set -e
+          echo "exit=$code" >> "$GITHUB_OUTPUT"
+          head -40 /tmp/report.md || true
+          {
+            echo "### 上游 ${{ steps.target.outputs.tag }} 契约体检"
+            echo
+            echo '```'
+            head -60 /tmp/report.md
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contract-report-${{ steps.target.outputs.tag }}
+          path: /tmp/report.md
+
+      - name: breaking 时开 issue
+        if: steps.diff.outputs.exit == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const tag = '${{ steps.target.outputs.tag }}'
+            const body = fs.readFileSync('/tmp/report.md', 'utf8').slice(0, 60000)
+            const title = `上游 ${tag} 出现破坏性契约变更`
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'upstream-sync',
+            })
+            if (open.some(i => i.title === title)) return
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title,
+              labels: ['upstream-sync'],
+              body: `自动体检发现破坏性变更。\n\n\`\`\`\n${body}\n\`\`\`\n\n处理流程见 judy-ops/upstream/README.md。`,
+            })
+
+      - name: 有变化但不是 breaking
+        if: steps.diff.outputs.exit == '0'
+        run: echo "上游 ${{ steps.target.outputs.tag }} 无破坏性变更，可择机跟进。"

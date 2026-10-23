@@ -26,7 +26,7 @@ function fixture(files: Record<string, string>): string {
 const UPSTREAM = `${JSON.stringify({
   name: '@deepseek-ai/dsh-llm',
   version: '0.2.1-rc.2',
-  description: 'Provider-neutral LLM service interface for the DeepSeek Harness',
+  description: 'Provider-neutral LLM service interface for the JUDY',
   repository: { type: 'git', url: 'git+https://github.com/deepseek-ai/deepseek-harness.git' },
   dependencies: { '@deepseek-ai/dsh-brand': 'workspace:*' },
 }, null, 2)}\n`
@@ -69,7 +69,7 @@ describe('brandManifestText', () => {
   })
 
   it('keeps the clause after the product name', () => {
-    const raw = '{\n  "description": "Agent runtime for the DeepSeek Harness — plugins all the way down"\n}\n'
+    const raw = '{\n  "description": "Agent runtime for the JUDY — plugins all the way down"\n}\n'
     expect(brandManifestText(raw).text).toContain('Agent runtime for the JUDY — plugins all the way down')
   })
 
@@ -98,11 +98,11 @@ describe('brandManifestText', () => {
 
 describe('brandProseText', () => {
   it('replaces both product spellings', () => {
-    expect(brandProseText('The DeepSeek Harness and the deepseek-harness repo')).toBe('The JUDY and the JUDY-harness repo')
+    expect(brandProseText('The JUDY and the deepseek-harness repo')).toBe('The JUDY and the JUDY-harness repo')
   })
 
   it('does not touch words that merely contain the name', () => {
-    const raw = 'DeepSeekHarness is not a word; DeepSeek Harness is.'
+    const raw = 'DeepSeekHarness is not a word; JUDY is.'
     expect(brandProseText(raw)).toBe('DeepSeekHarness is not a word; JUDY is.')
   })
 })
@@ -130,10 +130,10 @@ describe('brandTree', () => {
   })
 
   it('leaves prose alone unless asked', () => {
-    const root = fixture({ 'docs/readme.md': 'the DeepSeek Harness\n' })
+    const root = fixture({ 'docs/readme.md': 'the JUDY\n' })
 
     expect(brandTree(root).stats.files).toBe(0)
-    expect(readFileSync(join(root, 'docs/readme.md'), 'utf8')).toBe('the DeepSeek Harness\n')
+    expect(readFileSync(join(root, 'docs/readme.md'), 'utf8')).toBe('the JUDY\n')
 
     brandTree(root, { prose: true })
     expect(readFileSync(join(root, 'docs/readme.md'), 'utf8')).toBe('the JUDY\n')

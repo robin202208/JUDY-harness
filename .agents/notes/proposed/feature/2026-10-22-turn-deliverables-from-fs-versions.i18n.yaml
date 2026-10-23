@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-22-turn-deliverables-from-fs-versions.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/proposed/feature/2026-10-22-turn-deliverables-from-fs-versions.md
-2026-10-22-turn-deliverables-from-fs-versions.md: d6e78b735f5474c177e127a24578f13138286e11
-2026-10-22-turn-deliverables-from-fs-versions.zh.md: d7567cfb5d230ba1c1d7216f5fc9dc62088eb68e
+/agent-note-turn-deliverables-from-filesystem-versions:
+  en: f0256946dc3aa9c4
+  zh: 12edb98314359ab0
+/agent-note-turn-deliverables-from-filesystem-versions/problem:
+  en: 14e7f3550a8bc0a7
+  zh: 43b2c32582e63072
+/agent-note-turn-deliverables-from-filesystem-versions/proposal:
+  en: 6ea5ab1734160b22
+  zh: 3acdbb25a20da773
+/agent-note-turn-deliverables-from-filesystem-versions/alternatives-considered:
+  en: 2608da71f2d93598
+  zh: f3ec0b81faf57f86
+/agent-note-turn-deliverables-from-filesystem-versions/acceptance-criteria:
+  en: c39a9ce5906b2659
+  zh: 357ba7d1db5436d7
+/agent-note-turn-deliverables-from-filesystem-versions/risks:
+  en: b6f610ed9071a9c6
+  zh: 3cfd08c8e2c688ac

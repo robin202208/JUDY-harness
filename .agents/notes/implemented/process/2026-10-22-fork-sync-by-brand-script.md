@@ -6,7 +6,7 @@ English | [中文](2026-10-22-fork-sync-by-brand-script.zh.md)
 
 ## Problem
 
-The fork is on the `0.1.0-rc.5` end of a very active upstream: since the merge base `47f9438` (2026-08-13) upstream advanced 10,102 commits to `dsh-v0.2.1-rc.2`, while the fork carries 16 commits of its own. Measuring a merge to `dsh-v0.2.1-rc.2` with `git merge-tree` yields 346 conflicted files — and 114 of them are `package.json` files whose only difference from upstream is a hand-edited `description` and `repository.url`.
+The fork is on the `0.1.0-rc.5` end of a very active upstream: since the 0.1.0-rc.5 merge base (2026-08-13) upstream advanced 10,102 commits to `dsh-v0.2.1-rc.2`, while the fork carries 16 commits of its own. Measuring a merge to `dsh-v0.2.1-rc.2` with `git merge-tree` yields 346 conflicted files — and 114 of them are `package.json` files whose only difference from upstream is a hand-edited `description` and `repository.url`.
 
 That is the structural cost: the rebrand was performed as ordinary commits over upstream files, so every future merge re-opens the same 114 manifests, plus 73 markdown files, for edits a machine could reproduce exactly. Nothing in the repository could answer "how much will the next merge cost" before spending the day, and a first attempt to answer it was wrong: the local clone was shallow, `git rev-list` reported three commits, and the fork looked like an unrelated import with no common ancestor. The conclusion only inverted after `git fetch --unshallow`.
 

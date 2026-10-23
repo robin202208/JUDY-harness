@@ -1234,26 +1234,6 @@ Source: [`packages/workflow/tool-workflow/src/types.ts:47`](../packages/workflow
 
 ### `turn/*`
 
-<a id="turndeliverables--log-only"></a>
-
-#### `turn/deliverables` — log-only
-
-```ts persistence-catalog
-/**
- * What a completed turn wrote, derived from workspace version snapshots taken
- * between its `turn/start` and its `turn/end`. UI-facing and model-invisible:
- * it exists because shell commands report no file locations, so neither the
- * tool stream nor the closing prose can name what a script produced.
- *
- * Paths are absolute and rooted at `root`, the same unit tool `locations`
- * carry, so a consumer can union the two without a lookup. `removed` is
- * carried for diff reports and never rendered as a download.
- */
-'turn/deliverables': TurnDeliverables
-```
-
-Source: [`packages/core/session/src/types.ts:282`](../packages/core/session/src/types.ts)
-
 <a id="turnend--log-only"></a>
 
 #### `turn/end` — log-only

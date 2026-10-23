@@ -6,7 +6,7 @@ English | [中文](2026-10-22-turn-deliverables-from-fs-versions.zh.md)
 
 ## Problem
 
-The turn-tail file row only knows about files whose *tool* said it wrote them: [`producedPaths`](../../../packages/client/ui-deliverables/src/client/turn-deliverables.ts) accepts a `diff` card or a `generic` card with `kind === 'edit'`. A shell command, a Python script, or any tool that writes through the shell presents a `terminal` card, and `TerminalResultView` has no `locations` field at all. So the most common way a deliverable is actually produced in this deployment — a script run — leaves the row empty, and the closing message's file mentions have no vocabulary to resolve against.
+The turn-tail file row only knows about files whose *tool* said it wrote them: `producedPaths` accepts a `diff` card or a `generic` card with `kind === 'edit'`. A shell command, a Python script, or any tool that writes through the shell presents a `terminal` card, and `TerminalResultView` has no `locations` field at all. So the most common way a deliverable is actually produced in this deployment — a script run — leaves the row empty, and the closing message's file mentions have no vocabulary to resolve against.
 
 The system prompt already asks the model to format outputs as inline code using the exact path or a unique basename, and the model does not reliably comply. Guidance cannot substitute for a source of truth.
 
@@ -38,6 +38,10 @@ The request carries no filesystem path at all: the host resolves the session hea
 **Turn binding.** The conversation engine's Definition contract is synchronous — `match`/`start`/`update`/`buildLocationData` take an event and return state — so a turn boundary cannot await two snapshots. The host therefore owns the pairing: it runs the agent loop, observes `turn/start` and settle, snapshots both sides, and publishes the result as a new `turn/deliverables` Session event carrying `created ∪ modified` (minus the ignore set). The client Definition keeps its synchronous shape and reads that event like any other. `removed` is retained in the event for the diff report but never becomes a download chip. Tool-reported `locations` stay in the union: a file the tool named and the filesystem also saw is one entry.
 
 `fs.listVersions` still earns its place: it is how a client re-derives the same set for a turn whose event predates this change, and it keeps the walk testable without an agent run. It is not on the turn-boundary path.
+
+## Alternatives considered
+
+Keep only tool-reported `locations` and ask the model to print exact paths; rejected because guidance cannot be a source of truth and shell writes report no locations. Let the client poll the workspace through `fs.listVersions`; rejected because it moves a per-turn filesystem walk into the browser and duplicates the host authority.
 
 ## Acceptance criteria
 

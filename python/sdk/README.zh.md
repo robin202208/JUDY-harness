@@ -1,8 +1,8 @@
-# DeepSeek Harness Python SDK
+# JUDY Python SDK
 
 [English](README.md) | 中文
 
-用于通过 stdio 上按行分隔的 JSON-RPC 驱动 DeepSeek Harness 的 Python 子进程 SDK。安装 `judy-harness-sdk` 时，会同时安装当前平台上版本完全相同的 `judy-harness-runtime-bin` wheel 包。
+用于通过 stdio 上按行分隔的 JSON-RPC 驱动 JUDY 的 Python 子进程 SDK。安装 `judy-harness-sdk` 时，会同时安装当前平台上版本完全相同的 `judy-harness-runtime-bin` wheel 包。
 
 ```sh
 python -m pip install judy-harness-sdk

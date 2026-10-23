@@ -1,8 +1,8 @@
-# DeepSeek Harness Python SDK
+# JUDY Python SDK
 
 English | [中文](README.zh.md)
 
-Python subprocess SDK for driving DeepSeek Harness over newline-delimited JSON-RPC on stdio. Install `judy-harness-sdk`; it installs the exact same-version `judy-harness-runtime-bin` wheel for the current platform.
+Python subprocess SDK for driving JUDY over newline-delimited JSON-RPC on stdio. Install `judy-harness-sdk`; it installs the exact same-version `judy-harness-runtime-bin` wheel for the current platform.
 
 ```sh
 python -m pip install judy-harness-sdk

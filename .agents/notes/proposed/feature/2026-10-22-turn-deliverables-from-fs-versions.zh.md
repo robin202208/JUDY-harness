@@ -6,7 +6,7 @@ Status: proposed
 
 ## Problem
 
-底部的产物文件条只认识“工具自己承认写过”的文件：[`producedPaths`](../../../packages/client/ui-deliverables/src/client/turn-deliverables.ts) 只接受 `diff` 卡片，或 `kind === 'edit'` 的 `generic` 卡片。而 shell 命令、Python 脚本、以及任何通过 shell 落盘的工具，卡片都是 `terminal`，`TerminalResultView` 里根本没有 `locations` 字段。于是这套部署里最常见的交付方式——跑一个脚本——产出的文件条是空的，收尾消息里的文件提及也没有词表可解析。
+底部的产物文件条只认识“工具自己承认写过”的文件：`producedPaths` 只接受 `diff` 卡片，或 `kind === 'edit'` 的 `generic` 卡片。而 shell 命令、Python 脚本、以及任何通过 shell 落盘的工具，卡片都是 `terminal`，`TerminalResultView` 里根本没有 `locations` 字段。于是这套部署里最常见的交付方式——跑一个脚本——产出的文件条是空的，收尾消息里的文件提及也没有词表可解析。
 
 系统提示里已经要求模型用行内代码、写精确路径或本轮唯一的 basename，而模型并不稳定遵守。提示词替代不了事实源。
 
@@ -38,6 +38,10 @@ errors   session-not-found, fs-unavailable, cancelled
 **与轮次绑定。** 会话引擎的定义契约是同步的——`match`/`start`/`update`/`buildLocationData` 都是“给一个事件、返回状态”——所以一个轮次边界没法在里面 await 两次快照。因此配对由宿主拥有：宿主本来就跑 agent 循环、观察 `turn/start` 与落定，它取两侧快照，并把结果作为新的 `turn/deliverables` 会话事件发出，携带 `created ∪ modified`（去掉忽略集）。客户端的定义保持同步形状，像读其它事件一样读它。`removed` 保留在事件里供差分报告用，永远不变成下载 chip。工具上报的 `locations` 与文件系统结果取并集：同一个文件只出现一次。
 
 `fs.listVersions` 仍然有价值：它是客户端为“事件早于本次改动”的轮次重新推导同一集合的手段，也让遍历可以在不跑 agent 的情况下被测。它不在轮次边界的关键路径上。
+
+## Alternatives considered
+
+只保留工具上报的 `locations`，并要求模型打印精确路径。否决：提示词不构成事实来源，shell 写入也没有 locations。让客户端通过 `fs.listVersions` 自行轮询工作区。否决：把每轮的文件系统遍历搬进浏览器，并重复了宿主的权威。
 
 ## Acceptance criteria
 

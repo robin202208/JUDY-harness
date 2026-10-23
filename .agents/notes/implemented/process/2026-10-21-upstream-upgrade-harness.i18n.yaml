@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-21-upstream-upgrade-harness.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-10-21-upstream-upgrade-harness.md
-2026-10-21-upstream-upgrade-harness.md: 021fbd441865b59b56a6f3eeab38e4c3759b3730
-2026-10-21-upstream-upgrade-harness.zh.md: b2ccb7796941a5c84e714c9ef37f1bba3b33a111
+/agent-note-upstream-upgrade-harness-with-contract-snapshots:
+  en: 43cad86d3c57eb64
+  zh: 36e798a621c20769
+/agent-note-upstream-upgrade-harness-with-contract-snapshots/problem:
+  en: b4a07ddf7b60ea06
+  zh: 5712fe7fbbf91924
+/agent-note-upstream-upgrade-harness-with-contract-snapshots/decision:
+  en: 42c0dbc70cd4c9b8
+  zh: be7d3d16836b89ca
+/agent-note-upstream-upgrade-harness-with-contract-snapshots/alternatives-considered:
+  en: ed0af1f386c343ce
+  zh: aae78bd39b22d8f6
+/agent-note-upstream-upgrade-harness-with-contract-snapshots/consequences:
+  en: a4b555429829fd33
+  zh: d75e8edf0cbcdbc6

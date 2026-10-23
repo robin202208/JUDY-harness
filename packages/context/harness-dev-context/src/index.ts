@@ -1,6 +1,6 @@
 /**
  * @deepseek-ai/dsh-harness-dev-context — model context for an agent that can
- * inspect and extend the DeepSeek Harness serving its Web GUI. It registers
+ * inspect and extend the JUDY serving its Web GUI. It registers
  * path- and URL-free prompt sections and states the current implementation
  * checkout and Web GUI URL as runtime context, so a process started from
  * another checkout, port, or installation leaves the system prompt unchanged.
@@ -48,7 +48,7 @@ const WEB_SURFACE_GUIDANCE = 'When the user refers to "this page", "this GUI", o
   + 'The apps/web Vite entry builds the shell but is not a standalone application because only dsh web injects window.__DSH_BOOT__. '
   + 'Do not start a replacement server unless the user asks; if one is needed, use a managed background job and verify its exact URL.'
 
-const WEB_SURFACE_PROMPT = `You are interacting with the user through the DeepSeek Harness Web GUI whose URL the runtime context names. ${WEB_SURFACE_GUIDANCE}`
+const WEB_SURFACE_PROMPT = `You are interacting with the user through the JUDY Web GUI whose URL the runtime context names. ${WEB_SURFACE_GUIDANCE}`
 
 /**
  * Fixed text around the value in each paragraph that embedded it, frozen as
@@ -65,7 +65,7 @@ const LEGACY_SOURCE = {
 // The frozen copy repeats today's guidance on purpose; the two may diverge.
 /* jscpd:ignore-start */
 const LEGACY_WEB_SURFACE = {
-  prefix: 'You are interacting with the user through the DeepSeek Harness Web GUI at ',
+  prefix: 'You are interacting with the user through the JUDY Web GUI at ',
   suffix: '. When the user refers to "this page", "this GUI", or "this app" without naming another target, they mean this GUI. '
     + 'The browser provides no implicit DOM, route, or screenshot context. '
     + 'The client-plugin HMR receiver is active, but client-plugin changes reload without a refresh only while '
@@ -160,6 +160,6 @@ export function apply(ctx: Context): void {
     name: WEB_SURFACE,
     order: ctx.systemPrompt.getContextOrder('WEB_SURFACE'),
     interpolate: false,
-    text: () => `Current DeepSeek Harness Web GUI URL: ${JSON.stringify(ctx.webApp.getAdvertisedUrl())}.`,
+    text: () => `Current JUDY Web GUI URL: ${JSON.stringify(ctx.webApp.getAdvertisedUrl())}.`,
   })
 }

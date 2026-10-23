@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-22-fork-sync-by-brand-script.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-10-22-fork-sync-by-brand-script.md
-2026-10-22-fork-sync-by-brand-script.md: 1cdd04bfc11e1326f0012901b007bba8230c9d98
-2026-10-22-fork-sync-by-brand-script.zh.md: b2e57edbada2c674b3d5c25465c945d791499fe3
+/agent-note-fork-sync-by-generated-brand-layer:
+  en: 1f5372896cb14a56
+  zh: b241990be7115ab7
+/agent-note-fork-sync-by-generated-brand-layer/problem:
+  en: 7f1f8b233595c4c3
+  zh: 9551fd8714e3252e
+/agent-note-fork-sync-by-generated-brand-layer/decision:
+  en: 02c99c66c8095bee
+  zh: e480e62ebb6aa2ab
+/agent-note-fork-sync-by-generated-brand-layer/alternatives-considered:
+  en: 519a3e6a66e18415
+  zh: d12113dbdce890b3
+/agent-note-fork-sync-by-generated-brand-layer/consequences:
+  en: 7d3449da4df5f793
+  zh: 1f75f2917e30d5ed

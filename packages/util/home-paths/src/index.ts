@@ -122,7 +122,7 @@ function rootDisplay(resolvedRoot: string, defaultRoot: string, defaultLabel: st
 }
 
 /**
- * Resolve the single-root DeepSeek Harness home.
+ * Resolve the single-root JUDY home.
  *
  * Precedence, highest first: an explicit configured path, `$DSH_HOME`, then
  * `~/.dsh`. The harness keeps all user data under one root. An empty or
@@ -141,7 +141,7 @@ export function resolveDshHome(configured?: string, env: Record<string, string |
  *
  * Precedence, highest first: an explicit configured path, `$DSH_AGENTS_HOME`,
  * then `~/.agents`. The root holds configuration shared with other agent tools,
- * so it stays independent of the DeepSeek Harness home. An empty or
+ * so it stays independent of the JUDY home. An empty or
  * whitespace-only `$DSH_AGENTS_HOME` is treated as unset, so a blank override
  * never resolves the root to the current working directory.
  * @param configured - explicit shared-root override, which has highest precedence.

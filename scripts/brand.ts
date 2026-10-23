@@ -31,7 +31,7 @@ import { join, relative, resolve } from 'node:path'
 export const JUDY_REPO = 'git+https://github.com/robin202208/JUDY-harness.git'
 
 const UPSTREAM_REPOSITORY = /("(?:url|repository)"\s*:\s*")git\+https:\/\/github\.com\/deepseek-ai\/deepseek-harness(?:\.git)?(")/
-const UPSTREAM_DESCRIPTION = /("description"\s*:\s*")([^"]*?)(\s+for the DeepSeek Harness)([^"]*)(")/
+const UPSTREAM_DESCRIPTION = /("description"\s*:\s*")([^"]*?)(\s+for the JUDY)([^"]*)(")/
 const VERSION_FIELD = /(^\s*"version"\s*:\s*")([^"]+)(")/m
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'lib', 'build', '.pnpm', 'coverage', '.turbo'])
@@ -105,7 +105,7 @@ export function brandManifestText(raw: string, options: BrandManifestOptions = {
  */
 export function brandProseText(raw: string): string {
   return raw
-    .replace(/\bDeepSeek Harness\b/g, 'JUDY')
+    .replace(/\bJUDY\b/g, 'JUDY')
     .replace(/\bdeepseek-harness\b/g, 'JUDY-harness')
 }
 

@@ -343,12 +343,13 @@ describe('Chat node rendering', () => {
       ],
       turnEnds: new Map([[1, 4]]),
     })
-    // Stub provider mirroring the real service: only produced files resolve.
+    // Stub provider mirroring the real service: produced files resolve only
+    // for the closing message, whose owner carries the turn's output.
     h.props.fileMentions = owner => ({
       resolve: (value) => {
-        if (value !== 'report.html') return undefined
+        if (owner === undefined || value !== 'report.html') return undefined
         return {
-          open: () => { h.openFile(`for-seq-${String(owner.seq)}/site/report.html`) },
+          open: () => { h.openFile(`for-seq-${String(owner?.seq)}/site/report.html`) },
           label: '打开 site/report.html',
           title: 'site/report.html',
         }

@@ -56,28 +56,20 @@ function stableSnapshot(snapshot: Snapshot): Snapshot {
 
 interface AsarEntry { offset: string; size: number; files?: Record<string, AsarEntry> }
 
-/** Open an `app.asar` and expose `read(path)` over its virtual filesystem. */
-/** Index just past the JSON object that starts at raw[0], ignoring padding. */
-function endOfJsonObject(raw: string): number {
-  let depth = 0
-  let inString = false
-  let escaped = false
-  for (let index = 0; index < raw.length; index += 1) {
-    const char = raw[index]
-    if (inString) {
-      if (escaped) escaped = false
-      else if (char === '\\') escaped = true
-      else if (char === '"') inString = false
-      continue
-    }
-    if (char === '"') inString = true
-    else if (char === '{') depth += 1
-    else if (char === '}') {
-      depth -= 1
-      if (depth === 0) return index + 1
-    }
+/** One package manifest, as much of it as the contract surface inspects. */
+interface PackageManifest {
+  name: string
+  version: string
+  private?: boolean
+  dsh?: {
+    client?: { inject?: string[]; platform?: string }
+    bundle?: { patch?: string | string[] }
   }
-  throw new Error('asar: header has no closing brace')
+}
+
+/** First capture group of every match; a pattern without one contributes nothing. */
+function captureGroups(source: string, pattern: RegExp): string[] {
+  return [...source.matchAll(pattern)].flatMap(match => match[1] === undefined ? [] : [match[1]])
 }
 
 interface AsarReader {
@@ -86,6 +78,7 @@ interface AsarReader {
   isDir(path: string): boolean
 }
 
+/** Open an `app.asar` and expose `read(path)` over its virtual filesystem. */
 function openAsar(path: string): AsarReader {
   const handle = readFileSync(path)
   // asar layout: 16 bytes of pickle framing, then the JSON directory whose exact
@@ -99,8 +92,8 @@ function openAsar(path: string): AsarReader {
   const entryOf = (virtualPath: string): AsarEntry | undefined => {
     let node: AsarEntry | undefined = { offset: '0', size: 0, files: header.files }
     for (const part of virtualPath.split('/').filter(part => part !== '' && part !== '.')) {
-      node = node?.files?.[part]
       if (node === undefined) return undefined
+      node = node.files?.[part]
     }
     return node
   }
@@ -147,9 +140,9 @@ function snapshotFromAsar(asarPath: string): Snapshot {
   const patchFiles: string[] = []
 
   for (const name of asar.list('/dsh/node_modules/@deepseek-ai')) {
-    let manifest: { name: string; version: string; dsh?: { client?: { inject?: string[]; platform?: string }; bundle?: { patch?: string | string[] } } }
+    let manifest: PackageManifest
     try {
-      manifest = JSON.parse(asar.read(`/dsh/node_modules/@deepseek-ai/${name}/package.json`).toString('utf8'))
+      manifest = JSON.parse(asar.read(`/dsh/node_modules/@deepseek-ai/${name}/package.json`).toString('utf8')) as PackageManifest
     }
     catch {
       continue
@@ -176,7 +169,7 @@ function snapshotFromAsar(asarPath: string): Snapshot {
   const rowIds: string[] = []
   for (const patchFile of patchFiles) {
     const source = asar.read(patchFile).toString('utf8')
-    for (const match of source.matchAll(/^\s*-\s+id:\s*['"]?([\w.-]+)['"]?/gm)) rowIds.push(match[1]!)
+    for (const id of captureGroups(source, /^\s*-\s+id:\s*['"]?([\w.-]+)['"]?/gm)) rowIds.push(id)
   }
 
   // Slots: declared in a children map, or rendered through renderSlot().
@@ -188,9 +181,9 @@ function snapshotFromAsar(asarPath: string): Snapshot {
     .concat(shellFiles)
   for (const file of clientFiles) {
     const source = asar.read(file).toString('utf8')
-    for (const match of source.matchAll(/renderSlot\(\s*"([^"]+)"/g)) slots.push(match[1]!)
-    for (const match of source.matchAll(/"([a-z][\w-]*(?:\.[\w-]+)+)"\s*:\s*\{\s*kind:/g)) slots.push(match[1]!)
-    for (const match of source.matchAll(/process\.env(?:\.|\[\s*['"])(DSH_[A-Z0-9_]+)/g)) envVars.push(match[1]!)
+    for (const slot of captureGroups(source, /renderSlot\(\s*"([^"]+)"/g)) slots.push(slot)
+    for (const slot of captureGroups(source, /"([a-z][\w-]*(?:\.[\w-]+)+)"\s*:\s*\{\s*kind:/g)) slots.push(slot)
+    for (const name of captureGroups(source, /process\.env(?:\.|\[\s*['"])(DSH_[A-Z0-9_]+)/g)) envVars.push(name)
   }
 
   return stableSnapshot({
@@ -231,9 +224,9 @@ function snapshotFromRepo(repo: string): Snapshot {
   let version = '0.0.0'
 
   for (const manifestPath of manifests) {
-    let manifest: { name?: string; version?: string; private?: boolean; dsh?: { client?: { inject?: string[]; platform?: string }; bundle?: { patch?: string | string[] } } }
+    let manifest: Partial<PackageManifest>
     try {
-      manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+      manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as Partial<PackageManifest>
     }
     catch {
       continue
@@ -258,16 +251,16 @@ function snapshotFromRepo(repo: string): Snapshot {
   const rowIds: string[] = []
   for (const patchFile of patchFiles) {
     if (!existsSync(patchFile)) continue
-    for (const match of readFileSync(patchFile, 'utf8').matchAll(/^\s*-\s+id:\s*['"]?([\w.-]+)['"]?/gm)) rowIds.push(match[1]!)
+    for (const id of captureGroups(readFileSync(patchFile, 'utf8'), /^\s*-\s+id:\s*['"]?([\w.-]+)['"]?/gm)) rowIds.push(id)
   }
 
   const slots: string[] = []
   const envVars: string[] = []
   for (const file of walkRepo(repo, path => /\/lib\/client\.js$/.test(path) || /\/lib\/index\.js$/.test(path))) {
     const source = readFileSync(file, 'utf8')
-    for (const match of source.matchAll(/renderSlot\(\s*"([^"]+)"/g)) slots.push(match[1]!)
-    for (const match of source.matchAll(/"([a-z][\w-]*(?:\.[\w-]+)+)"\s*:\s*\{\s*kind:/g)) slots.push(match[1]!)
-    for (const match of source.matchAll(/process\.env(?:\.|\[\s*['"])(DSH_[A-Z0-9_]+)/g)) envVars.push(match[1]!)
+    for (const slot of captureGroups(source, /renderSlot\(\s*"([^"]+)"/g)) slots.push(slot)
+    for (const slot of captureGroups(source, /"([a-z][\w-]*(?:\.[\w-]+)+)"\s*:\s*\{\s*kind:/g)) slots.push(slot)
+    for (const name of captureGroups(source, /process\.env(?:\.|\[\s*['"])(DSH_[A-Z0-9_]+)/g)) envVars.push(name)
   }
 
   return stableSnapshot({
@@ -397,7 +390,10 @@ if (process.argv[1] !== undefined && import.meta.filename === resolve(process.ar
     const repo = flag('--repo')
     const out = flag('--out') ?? join(ROOT, 'contracts', 'snapshot.json')
     if (asar === undefined && repo === undefined) usage()
-    const snapshot = asar !== undefined ? snapshotFromAsar(resolve(ROOT, asar)) : snapshotFromRepo(resolve(ROOT, repo!))
+    let snapshot: Snapshot
+    if (asar !== undefined) snapshot = snapshotFromAsar(resolve(ROOT, asar))
+    else if (repo !== undefined) snapshot = snapshotFromRepo(resolve(ROOT, repo))
+    else usage()
     if (snapshot.source.kind === 'repo' && snapshot.slots.length === 0) {
       process.stderr.write(
         'contracts: no built lib/client.js in this tree, so slots and env vars were not captured.\n'
@@ -416,13 +412,16 @@ if (process.argv[1] !== undefined && import.meta.filename === resolve(process.ar
 
   if (command === 'diff') {
     const positional = rest.filter(argument => !argument.startsWith('--') && argument !== flag('--fail-on'))
-    if (positional.length < 2) usage()
-    const before = parseSnapshot(resolve(ROOT, positional[0]!))
-    const after = parseSnapshot(resolve(ROOT, positional[1]!))
+    const beforePath = positional[0]
+    const afterPath = positional[1]
+    if (beforePath === undefined || afterPath === undefined) usage()
+    const before = parseSnapshot(resolve(ROOT, beforePath))
+    const after = parseSnapshot(resolve(ROOT, afterPath))
     const changes = diffSnapshots(before, after)
     const report = renderReport(before, after, changes)
     const outIndex = rest.indexOf('--out')
-    if (outIndex >= 0 && rest[outIndex + 1] !== undefined) writeFileSync(resolve(ROOT, rest[outIndex + 1]!), report)
+    const outPath = rest[outIndex + 1]
+    if (outIndex >= 0 && outPath !== undefined) writeFileSync(resolve(ROOT, outPath), report)
     process.stdout.write(report)
 
     const failOn = flag('--fail-on') ?? 'breaking'

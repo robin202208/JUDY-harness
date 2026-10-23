@@ -426,7 +426,7 @@ describe('producedFileMentions resolver', () => {
     const byBasename = resolver.resolve('index.html')
     expect(byBasename?.label).toBe('打开 out/index.html')
     expect(byBasename?.title).toBe('out/index.html')
-    byBasename?.open()
+    byBasename?.open?.()
     expect(opened).toEqual(['out/index.html'])
     // An exact path resolves even when its basename is ambiguous.
     const exact = resolver.resolve('a/style.css')
@@ -490,7 +490,7 @@ describe('plugin registration', () => {
     )
     const service = (ctx as unknown as { get(name: string): ChatFileMentions | undefined }).get('chatFileMentions')
     const mentions = service?.forProse(owner)
-    mentions?.resolve('report.html')?.open()
+    mentions?.resolve('report.html')?.open?.()
     expect(opened).toEqual(['site/report.html'])
     // A turn that produced nothing still yields the absolute-path vocabulary,
     // but it names none of the produced files: the mention stays inert.

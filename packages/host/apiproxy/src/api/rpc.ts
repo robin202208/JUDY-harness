@@ -42,6 +42,8 @@ export interface RpcErrorDetailsMap {
   'workspace-name-conflict': { name: string }
   'workspace-move-invalid': { workspaceId: string; sessionId: SessionId; beforeSessionId?: SessionId }
   'directory-unreadable': { path: string }
+  /** A session has no project cwd, so there is no workspace to observe. */
+  'fs-unavailable': { sessionId: SessionId }
   'directory-exists': { path: string }
   'directory-create-failed': { path: string }
   'directory-picker-unavailable': { capability: string }

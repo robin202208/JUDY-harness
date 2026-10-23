@@ -95,6 +95,23 @@ export function apply(ctx: ClientContext): void {
       await ctx.workspaces.insertBefore(workspaceId, beforeWorkspaceId)
     },
     archiveSession: async (sessionId) => { await ctx.workspaces.archiveSession(sessionId) },
+    deleteSession: async (sessionId) => {
+      // 进程内删除：Host 停 agent、把日志移入回收站，不重启服务、不需要刷新页面
+      const rpcId = crypto.randomUUID()
+      const res = await fetch('/api/session.delete', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'client-request', rpcId, method: 'session.delete', payload: { sessionId } }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const body = await res.json() as {
+        type?: string
+        result?: { ok?: boolean; error?: { message?: string } }
+      }
+      if (body.type !== 'server-response' || body.result?.ok !== true) {
+        throw new Error(body.result?.error?.message ?? '删除失败')
+      }
+    },
     insertSessionBefore: async (workspaceId, sessionId, beforeSessionId) => {
       await ctx.workspaces.insertSessionBefore(workspaceId, sessionId, beforeSessionId)
     },

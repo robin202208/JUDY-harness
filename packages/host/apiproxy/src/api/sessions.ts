@@ -313,6 +313,14 @@ export interface SessionsApi {
   Promise<RpcResponse<{ title: string; seq: number }>>
 
   /**
+   * Permanently deletes one session: stops its live Agent (if this proxy owns
+   * the handle), moves the persisted log into `<DSH_HOME>/trash-sessions`, and
+   * resolves once the artifacts are gone. The Host keeps no restart step.
+   */
+  delete(request: RpcRequest<{ sessionId: SessionId }>):
+  Promise<RpcResponse<{ deleted: true }>>
+
+  /**
    * Sends a message. content is core's ContentBlock[] verbatim; mode maps 1:1 — queue→send, steer→steer.
    * A prompt whose content is exactly one text block starting with '/' is a slash command: the host
    * executes it through the command registry (mode-agnostic) and it is never sent to the model. A

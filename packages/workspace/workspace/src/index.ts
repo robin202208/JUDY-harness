@@ -16,6 +16,12 @@ import { WorkspaceEntity } from './entity.ts'
 import type { WorkspaceEntityHost } from './entity.ts'
 
 export { WorkspaceMoveInvalidError } from './entity.ts'
+export { changedVersions, collectVersions } from './versions.ts'
+export { deliverablePaths, turnDeliverables } from './turn-deliverables.ts'
+export type { TurnDeliverables } from './turn-deliverables.ts'
+export type {
+  CollectVersionsOptions, FileVersionEntry, VersionDiff, VersionSnapshot,
+} from './versions.ts'
 import { realpathNormalize } from './paths.ts'
 import { workspaceDomainSpec } from './spec.ts'
 import type { WorkspaceDomainState, WorkspaceRecord } from './spec.ts'

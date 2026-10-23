@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/proposed/feature/2026-10-22-turn-deliverables-from-fs-versions.md
+2026-10-22-turn-deliverables-from-fs-versions.md: d6e78b735f5474c177e127a24578f13138286e11
+2026-10-22-turn-deliverables-from-fs-versions.zh.md: d7567cfb5d230ba1c1d7216f5fc9dc62088eb68e

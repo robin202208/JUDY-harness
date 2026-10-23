@@ -16,10 +16,9 @@ export const AssistantNodeView = memo(function AssistantNodeView({
     if (tail?.closing?.finalNode.seq !== data.finalNode.seq) return undefined
     return { turn, seq: data.finalNode.seq, openFile }
   }, [data.finalNode, openFile, tail, turn])
-  const mentions = useMemo(
-    () => owner === undefined ? undefined : fileMentions(owner),
-    [fileMentions, owner],
-  )
+  // Closing prose gets the turn's produced-file vocabulary; every other
+  // message still gets path-shaped links (owner undefined).
+  const mentions = useMemo(() => fileMentions(owner), [fileMentions, owner])
   return (
     <AssistantMarkdown
       blocks={data.blocks}

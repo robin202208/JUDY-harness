@@ -14,7 +14,7 @@ import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { ProducedFiles } from './ProducedFiles.tsx'
 import { en, NS, zh, type DeliverablesKey } from './locales.ts'
 import {
-  deliverablesDefinition, producedFileMentions, selectProducedFiles,
+  deliverablesDefinition, proseFileMentions, selectProducedFiles,
 } from './turn-deliverables.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
@@ -54,12 +54,12 @@ export function apply(ctx: ClientContext): void {
   // via ctx.get, so its absence — this plugin composed out — is the off state.
   const t = ctx.locale.bind(NS)
   const mentions: ChatFileMentions = {
-    forClosing(owner) {
-      // Same claim test the turn-tail chain entry runs: no produced files,
-      // no vocabulary — the two surfaces agree by construction.
-      const paths = selectProducedFiles(owner)
-      if (paths === null) return undefined
-      return producedFileMentions(paths, owner.openFile, path => t('produced.open', { name: path }))
+    forProse(owner) {
+      // The closing message's owner adds the turn's produced files; every
+      // other message falls back to the path-shaped vocabulary below.
+      const paths = owner === undefined ? null : selectProducedFiles(owner)
+      const openFile = owner === undefined ? () => {} : owner.openFile
+      return proseFileMentions(paths ?? [], openFile, path => t('produced.download', { name: path }))
     },
   }
   ctx.provide('chatFileMentions', mentions)

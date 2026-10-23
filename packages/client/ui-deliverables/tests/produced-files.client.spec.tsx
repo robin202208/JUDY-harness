@@ -23,7 +23,8 @@ import {
   fitProducedFiles, ProducedFiles, type ProducedFilesProps,
 } from '../src/client/ProducedFiles.tsx'
 import {
-  basename, deliverablesDefinition, producedFileMentions, producedForClosing, selectProducedFiles,
+  basename, deliverablesDefinition, producedFileMentions, producedForClosing, resolveProducedPath,
+  selectProducedFiles,
   type DeliverablesTurnData,
 } from '../src/client/turn-deliverables.ts'
 import { apply, inject } from '../src/client/index.ts'
@@ -306,7 +307,7 @@ describe('ProducedFiles row', () => {
     expect(fitProducedFiles(20, 8, [60], [70, 50])).toBe(0)
   })
 
-  it('keeps one measured line, updates on resize, and opens a file or the workspace folder', () => {
+  it('keeps one measured line, updates on resize, downloads a file, and opens the workspace folder', () => {
     const paths = ['deep/a.html', 'b.css', 'c.ts', 'd.ts', 'e.ts', 'f.ts', 'g.ts']
     const openFile = vi.fn<(path: string) => void>()
     let available = 226
@@ -343,14 +344,16 @@ describe('ProducedFiles row', () => {
     const row = view.container.querySelector('[data-produced-files-row]')
     if (!(row instanceof HTMLElement)) throw new Error('produced row missing')
     // The third probe is 100px: two chips plus the remainder fit, three do not.
-    expect(within(row).getAllByRole('button')).toHaveLength(2)
+    expect(within(row).getAllByRole('link')).toHaveLength(2)
     expect(within(row).getByText('+ 5 个文件')).toBeTruthy()
-    const chip = view.getByRole('button', { name: '打开 deep/a.html' })
+    const chip = view.getByRole('link', { name: '下载 deep/a.html' })
     expect(chip.textContent).toBe('a.html')
     expect(chip.getAttribute('title')).toBe('deep/a.html')
-    expect(view.queryByRole('button', { name: '打开 g.ts' })).toBeNull()
-    fireEvent.click(chip)
-    expect(openFile).toHaveBeenCalledWith('deep/a.html')
+    // The chip downloads through the files service instead of asking the Host
+    // to open the file: the reader is not sitting at the Host's desktop.
+    expect(chip.getAttribute('href')).toBe('/files/download?path=deep%2Fa.html')
+    expect(chip.hasAttribute('download')).toBe(true)
+    expect(view.queryByRole('link', { name: '下载 g.ts' })).toBeNull()
 
     const showFolder = view.getByRole('button', { name: '在文件夹中显示' })
     fireEvent.click(showFolder)
@@ -358,14 +361,14 @@ describe('ProducedFiles row', () => {
 
     available = 150
     act(() => { resize?.([], {} as ResizeObserver) })
-    expect(within(row).getAllByRole('button')).toHaveLength(1)
+    expect(within(row).getAllByRole('link')).toHaveLength(1)
     expect(within(row).getByText('+ 6 个文件')).toBeTruthy()
 
     // A missing/unsupported computed gap falls back to zero rather than NaN.
     vi.stubGlobal('getComputedStyle', () => ({ columnGap: '', gap: '' } as CSSStyleDeclaration))
     available = 165
     act(() => { resize?.([], {} as ResizeObserver) })
-    expect(within(row).getAllByRole('button')).toHaveLength(2)
+    expect(within(row).getAllByRole('link')).toHaveLength(2)
 
     // Ref callbacks leave nulls in the probe arrays when the candidate set
     // shrinks; the replacement observer must skip those stale slots.
@@ -373,7 +376,7 @@ describe('ProducedFiles row', () => {
     view.rerender(
       <ProducedFiles matched={paths.slice(0, 1)} openFile={openFile} {...capability(true)} t={t} />,
     )
-    expect(within(row).getAllByRole('button')).toHaveLength(1)
+    expect(within(row).getAllByRole('link')).toHaveLength(1)
     expect(observeNode).toHaveBeenCalledTimes(3)
 
     view.unmount()
@@ -486,15 +489,60 @@ describe('plugin registration', () => {
       (path) => { opened.push(path) },
     )
     const service = (ctx as unknown as { get(name: string): ChatFileMentions | undefined }).get('chatFileMentions')
-    const mentions = service?.forClosing(owner)
+    const mentions = service?.forProse(owner)
     mentions?.resolve('report.html')?.open()
     expect(opened).toEqual(['site/report.html'])
-    // A turn that produced nothing yields no vocabulary at all.
-    expect(service?.forClosing(tailOwner(undefined, 2))).toBeUndefined()
+    // A turn that produced nothing still yields the absolute-path vocabulary,
+    // but it names none of the produced files: the mention stays inert.
+    expect(service?.forProse(tailOwner(undefined, 2))?.resolve('report.html')).toBeUndefined()
 
     await fiber.dispose()
     expect(ctx.slots.entries('conversation.chat.turnTail')).toHaveLength(0)
     // Fiber teardown retracts the service: the consumer's ctx.get sees the off state.
     expect((ctx as unknown as { get(name: string): unknown }).get('chatFileMentions')).toBeUndefined()
+  })
+})
+
+describe('resolveProducedPath', () => {
+  const paths = ['/work/out/report.xlsx', '/work/notes/todo.md', '/work/out/summary.csv']
+
+  it('prefers an exact path', () => {
+    expect(resolveProducedPath(paths, '/work/notes/todo.md')).toBe('/work/notes/todo.md')
+  })
+
+  it('resolves a bare basename when it is unique', () => {
+    expect(resolveProducedPath(paths, 'todo.md')).toBe('/work/notes/todo.md')
+  })
+
+  it('resolves a relative suffix, so prose can name the file the way the writer sees it', () => {
+    expect(resolveProducedPath(paths, 'out/report.xlsx')).toBe('/work/out/report.xlsx')
+  })
+
+  it('stays inert when the token is ambiguous or unknown', () => {
+    expect(resolveProducedPath(['/a/x/report.xlsx', '/b/y/report.xlsx'], 'report.xlsx')).toBeUndefined()
+    expect(resolveProducedPath(paths, 'out/missing.xlsx')).toBeUndefined()
+  })
+})
+
+describe('turn/deliverables consumption', () => {
+  it('adds host-published paths to the turn output set, excluding deletions', () => {
+    const initial = deliverablesDefinition.start(
+      {} as never,
+      matched(at(1, 'turn/start', { turn: 4 }), 'start'),
+      {} as never,
+    )
+    const published = matched(at(9, 'turn/deliverables', {
+      turn: 4,
+      root: '/ws',
+      created: ['/ws/a.md'],
+      modified: ['/ws/b.md'],
+      removed: ['/ws/c.md'],
+      truncated: false,
+    }), 'update')
+
+    const next = deliverablesDefinition.update({ state: initial } as never, published)
+
+    // Absolute paths in the same unit as tool locations; deletions never become downloads.
+    expect(next.produced.map(entry => entry.path)).toEqual(['/ws/a.md', '/ws/b.md'])
   })
 })

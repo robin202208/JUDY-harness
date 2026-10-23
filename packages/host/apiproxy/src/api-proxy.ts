@@ -4,11 +4,11 @@
  */
 
 import { randomUUID } from 'node:crypto'
-import { mkdir, stat } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { mkdir, rename, stat } from 'node:fs/promises'
+import { dirname, join, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
-import type { Agent, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@deepseek-ai/dsh-agent'
+import type { Agent, AgentHandle, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-presets/types'
 import { AttachmentError } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
@@ -22,6 +22,7 @@ import { SessionQueryError, type SessionSearchCursor } from '@deepseek-ai/dsh-se
 import { SubagentError } from '@deepseek-ai/dsh-subagent'
 import type { SubagentListEntry as CatalogSubagentListEntry } from '@deepseek-ai/dsh-subagent'
 import { isUserInvocable } from '@deepseek-ai/dsh-skill'
+import { collectVersions } from '@deepseek-ai/dsh-workspace'
 import type { Workspace, WorkspaceRecord } from '@deepseek-ai/dsh-workspace'
 import {
   workspaceDomainState, workspaceRecord, WorkspaceId as brandWorkspaceId,
@@ -1125,6 +1126,13 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   const presetSwitches = new Map<SessionId, Promise<unknown>>()
   /** Client-chosen identity creation/resume, deduplicated across concurrent retries. */
   const sessionCreations = new Map<SessionId, Promise<Agent>>()
+  /**
+   * Agent handles for sessions this proxy created or resumed. `dispose()` is
+   * the only ordered teardown (stop loop, unregister, drop session, unwind
+   * scope), so deletion must hold this capability rather than a bare Agent.
+   */
+  const agentHandles = new Map<SessionId, AgentHandle>()
+  ctx.on('agent/disposed', ({ agent }: { agent: Agent }) => { agentHandles.delete(agent.id) })
   /** Serializes path ownership and explicit title checks with Workspace mutations. */
   let workspaceCreationChain = Promise.resolve()
   const pendingQuestions = new Map<RpcId, PendingQuestion>()
@@ -1266,6 +1274,8 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   // restore that history under the old tool set.
   const agentFor = createApiRemoteAgentResolver(ctx, {
     agentOptions,
+    // 冷恢复同样产生 AgentHandle；删除时要能按序停掉这个 agent
+    onResume: (sessionId, handle) => { agentHandles.set(sessionId, handle) },
     setup: async ({ meta, events }) =>
       (await composeAgent(resolveSessionPreset({ header: meta, events }))).setup,
   })
@@ -1654,11 +1664,13 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           // session's history was produced under that composition, and
           // rebuilding it differently would replay tool calls the model can no
           // longer make.
-          return (await ctx.agents.resume({
+          const handle = await ctx.agents.resume({
             resumeSessionId: sessionId,
             agentOptions: agentOptions(),
             setup: (await composeAgent(storedPreset)).setup,
-          })).agent
+          })
+          agentHandles.set(sessionId, handle)
+          return handle.agent
         }
 
         try {
@@ -1667,7 +1679,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           throw new Error(`failed to ensure project directory "${cwd}": ${String(error)}`, { cause: error })
         }
         const composition = await composeAgent(presetId)
-        return (await ctx.agents.create({
+        const handle = await ctx.agents.create({
           sessionId,
           agentOptions: agentOptions(),
           meta: {
@@ -1675,7 +1687,9 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             ...composition.agentPreset === undefined ? {} : { agentPreset: composition.agentPreset },
           },
           setup: composition.setup,
-        })).agent
+        })
+        agentHandles.set(sessionId, handle)
+        return handle.agent
       })().catch((error: unknown) => {
         // Another Host entry path may have published the same identity while
         // this operation crossed an asynchronous persistence/filesystem step.
@@ -2631,6 +2645,59 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         agent.cancel({ kind: 'user' }, { keepInbox: true })
         return Promise.resolve(ok(request, { accepted: true as const }))
       },
+
+      async delete(request) {
+        const { sessionId } = request.payload
+        try {
+          // A live Agent must be torn down by its owning handle; a live session
+          // this proxy does not own is refused instead of racing its loop.
+          const live = ctx.agents.get(sessionId)
+          const handle = agentHandles.get(sessionId)
+          if (live !== undefined && handle === undefined) {
+            return err(request, {
+              code: 'agent-busy',
+              message: 'session is running under another owner',
+              details: { reason: 'not-owned' },
+            })
+          }
+          if (handle !== undefined) {
+            await handle.dispose()
+            agentHandles.delete(sessionId)
+          }
+
+          const persistence = ctx.get('sessionPersistence')
+          if (persistence !== undefined) {
+            const header = (await persistence.list()).find(candidate => candidate.id === sessionId)
+            const location = header === undefined ? undefined : persistence.locate(header)
+            if (location !== undefined) {
+              const sessionDir = dirname(location.path)
+              const home = process.env.DSH_HOME ?? '/data/judy'
+              // Only ever move a session directory, never an arbitrary path.
+              if (sessionDir.startsWith(join(home, 'sessions') + sep)) {
+                const trash = join(home, 'trash-sessions')
+                await mkdir(trash, { recursive: true })
+                const now = new Date()
+                const pad = (n: number): string => String(n).padStart(2, '0')
+                const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`
+                  + `-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+                await rename(sessionDir, join(trash, `${stamp}__${sessionId}`))
+              }
+            }
+          }
+          // 从每个工作区的记账里摘掉；不写这一句，侧栏虽然按 session.list
+          // 过滤看不到，但 storages/workspace.json 会一直留着死 id 直到下次重启。
+          for (const workspace of ctx.workspaceRegistry.list()) {
+            await workspace.detachSession(sessionId)
+          }
+          return ok(request, { deleted: true as const })
+        } catch (error: unknown) {
+          return err(request, {
+            code: 'internal',
+            message: `failed to delete session "${sessionId}": ${String(error)}`,
+            details: {},
+          })
+        }
+      },
     },
 
     subagents: {
@@ -3199,6 +3266,44 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         } catch (error: unknown) {
           return err(request, presetError(agentPreset, error))
         }
+      },
+    },
+
+    fs: {
+      // Reads only, addressed by session: the payload carries no path, so the
+      // walk can only observe the workspace the caller is already attached to.
+      async listVersions(request, signal) {
+        const { sessionId, maxDepth, maxEntries } = request.payload
+        const session = ctx.sessions.get(sessionId)
+        if (session === undefined) {
+          return err(request, {
+            code: 'session-not-found',
+            message: `session "${sessionId}" not found (not attached)`,
+            details: { sessionId },
+          })
+        }
+        const root = session.header.cwd
+        if (root === undefined) {
+          return err(request, {
+            code: 'fs-unavailable',
+            message: `session "${sessionId}" has no project cwd to observe`,
+            details: { sessionId },
+          })
+        }
+        const snapshot = await collectVersions(root, {
+          ...(maxDepth === undefined ? {} : { maxDepth }),
+          ...(maxEntries === undefined ? {} : { maxEntries }),
+          signal,
+        })
+        if (signal.aborted) {
+          return err(request, { code: 'cancelled', message: 'workspace version snapshot was aborted', details: {} })
+        }
+        return ok(request, {
+          root: snapshot.root,
+          entries: [...snapshot.entries.values()].sort((left, right) => left.path.localeCompare(right.path)),
+          truncated: snapshot.truncated,
+          unreadable: snapshot.unreadable,
+        })
       },
     },
 

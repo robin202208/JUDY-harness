@@ -1,14 +1,15 @@
 // ProducedFiles: the produced-file row a finished turn ends with. The paths
 // come pre-matched by the turn-tail chain from the mutation tools'
-// follow-along locations, never from the closing prose. Clicking one goes
-// through the same openFile the tool rows use — the Host's own opener, on the
-// Host machine.
+// follow-along locations, never from the closing prose. Each chip is a browser
+// download through the files service: the reader is on their own machine, so
+// "open on the Host" is the wrong verb for a deployment reached over HTTP. The
+// folder action keeps the Host opener for the loopback case.
 
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { HostDescriptionSource } from '@deepseek-ai/dsh-client-connection/client'
 import type { InjectFace, PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { TurnTailOwnerProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
-import { basename } from './turn-deliverables.ts'
+import { basename, fileDownloadHref } from './turn-deliverables.ts'
 import type { NS } from './locales.ts'
 import css from './ProducedFiles.module.css'
 
@@ -117,18 +118,18 @@ export function ProducedFiles({
       <span className={css.label}>{t('produced.label')}</span>
       <div ref={rowRef} className={css.row} data-produced-files-row>
         {shown.map(path => (
-          <button
+          <a
             key={path}
-            type="button"
             className={css.file}
             // The full path is the disambiguator when two turns produce files
             // that share a basename; the chip itself stays short.
             title={path}
-            aria-label={t('produced.open', { name: path })}
-            onClick={() => { openFile(path) }}
+            aria-label={t('produced.download', { name: path })}
+            href={fileDownloadHref(path)}
+            download
           >
             {basename(path)}
-          </button>
+          </a>
         ))}
         {hidden > 0 && <span className={css.more}>{moreLabel(t, hidden)}</span>}
       </div>

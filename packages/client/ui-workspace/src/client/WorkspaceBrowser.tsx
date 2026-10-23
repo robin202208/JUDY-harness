@@ -213,6 +213,24 @@ function workspaceGroupHalf(e: { clientY: number; currentTarget: HTMLElement }):
   return e.clientY < rect.top + rect.height / 2 ? 'before' : 'after'
 }
 
+/**
+ * Drop optimistically deleted sessions from a list snapshot. The Host stops
+ * returning them once the queued deletion lands; until then the row must not
+ * flash back on the next list refresh.
+ */
+function withoutHiddenSessions<T extends { ids: readonly string[]; byId: Record<string, unknown> }>(
+  list: T,
+  hidden: ReadonlySet<string>,
+): T {
+  if (hidden.size === 0) return list
+  const ids = list.ids.filter(id => !hidden.has(id))
+  if (ids.length === list.ids.length) return list
+  const byId = Object.fromEntries(
+    Object.entries(list.byId).filter(([id]) => !hidden.has(id)),
+  )
+  return { ...list, ids, byId } as unknown as T
+}
+
 type SessionTreeProps = Pick<
   WorkspaceBrowserProps,
   'useSessions' | 'startSession' | 'open' | 'forkSession'
@@ -241,6 +259,10 @@ type SessionTreeProps = Pick<
   onSessionRename: (sessionId: SessionNode['id'], currentTitle: string) => void
   /** Archive a session (row menu action; the row disappears on the state echo). */
   onSessionArchive: (sessionId: SessionNode['id']) => void
+  /** Delete a session: hide the row now, then let the Host queue the purge. */
+  onSessionDelete: (sessionId: SessionNode['id']) => void
+  /** Sessions already confirmed for deletion, hidden until the Host drops them. */
+  hiddenSessionIds: ReadonlySet<string>
   /** Session order behavior: fixed after edits, or additionally promoted by user activity. */
   orderBy: SessionOrderBy
 }
@@ -249,11 +271,16 @@ type SessionTreeProps = Pick<
 function SessionTree({
   useSessions, startSession, open, forkSession, workspaces, archivedSessionIds,
   onRenameRequest, onDeleteRequest, onSessionRename, onSessionArchive,
+  onSessionDelete, hiddenSessionIds,
   insertWorkspaceBefore, insertSessionBefore, orderBy,
   groupExpansion, setGroupExpanded,
   sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder, t,
 }: SessionTreeProps) {
-  const list = useSessions(s => s)
+  const rawList = useSessions(s => s)
+  const list = useMemo(
+    () => withoutHiddenSessions(rawList, hiddenSessionIds),
+    [rawList, hiddenSessionIds],
+  )
   const current = list.current
   const [expandedSessionGroups, setExpandedSessionGroups] = useState<string[]>([])
   // Transient drag marker state; the selected mode owns the resulting order.
@@ -516,6 +543,7 @@ function SessionTree({
                     onRename={onSessionRename}
                     onFork={forkSession}
                     onArchive={onSessionArchive}
+                    onDelete={onSessionDelete}
                     drag={dragProps}
                     t={t}
                   />
@@ -545,6 +573,7 @@ function SessionTree({
 /** The flat "In one list" body: every session is one draggable top-level row. */
 function FlatList({
   useSessions, open, forkSession, onSessionRename, onSessionArchive, archivedSessionIds,
+  onSessionDelete, hiddenSessionIds,
   orderBy, sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder, t,
 }: Pick<
   SessionTreeProps,
@@ -553,6 +582,8 @@ function FlatList({
   | 'forkSession'
   | 'onSessionRename'
   | 'onSessionArchive'
+  | 'onSessionDelete'
+  | 'hiddenSessionIds'
   | 'archivedSessionIds'
   | 'orderBy'
   | 'sessionOrderByAccount'
@@ -561,7 +592,11 @@ function FlatList({
   | 'setSessionOrder'
   | 't'
 >) {
-  const list = useSessions(s => s)
+  const rawList = useSessions(s => s)
+  const list = useMemo(
+    () => withoutHiddenSessions(rawList, hiddenSessionIds),
+    [rawList, hiddenSessionIds],
+  )
   const baseRows = useMemo(
     () => deriveFlat(list, archivedSessionIds),
     [list, archivedSessionIds],
@@ -632,6 +667,7 @@ function FlatList({
               onRename={onSessionRename}
               onFork={forkSession}
               onArchive={onSessionArchive}
+              onDelete={onSessionDelete}
               flat
               drag={{
                 start: () => {
@@ -753,6 +789,7 @@ export function WorkspaceBrowser({
   deleteWorkspace,
   insertWorkspaceBefore,
   archiveSession,
+  deleteSession,
   insertSessionBefore,
   createWorkspace,
   searchSessions,
@@ -934,6 +971,23 @@ export function WorkspaceBrowser({
   const onSessionArchive = (sessionId: SessionNode['id']) => {
     archiveSession(sessionId).catch((reason: unknown) => {
       console.warn('session archive rejected:', reason)
+    })
+  }
+
+  // Delete: hide the row immediately, then hand the purge to the Host queue.
+  // A rejected request puts the row back; a successful one keeps it hidden
+  // until the Host stops returning it (no reload, no waiting on the restart).
+  const [hiddenSessionIds, setHiddenSessionIds] = useState<ReadonlySet<SessionNode['id']>>(new Set())
+  const onSessionDelete = (sessionId: SessionNode['id']) => {
+    setHiddenSessionIds(previous => new Set(previous).add(sessionId))
+    deleteSession(sessionId).catch((reason: unknown) => {
+      setHiddenSessionIds((previous) => {
+        if (!previous.has(sessionId)) return previous
+        const next = new Set(previous)
+        next.delete(sessionId)
+        return next
+      })
+      window.alert(`删除失败：${reason instanceof Error ? reason.message : String(reason)}`)
     })
   }
 
@@ -1124,6 +1178,7 @@ export function WorkspaceBrowser({
               <FlatList
                 useSessions={useSessions} open={open} forkSession={forkSession}
                 onSessionRename={onSessionRename} onSessionArchive={onSessionArchive}
+                onSessionDelete={onSessionDelete} hiddenSessionIds={hiddenSessionIds}
                 archivedSessionIds={archivedSessionIds}
                 orderBy={orderBy}
                 sessionOrderByAccount={sessionOrderByAccount}
@@ -1138,6 +1193,8 @@ export function WorkspaceBrowser({
                 useSessions={useSessions}
                 onSessionRename={onSessionRename}
                 onSessionArchive={onSessionArchive}
+                onSessionDelete={onSessionDelete}
+                hiddenSessionIds={hiddenSessionIds}
                 forkSession={forkSession}
                 workspaces={workspaces}
                 groupExpansion={groupExpansion}

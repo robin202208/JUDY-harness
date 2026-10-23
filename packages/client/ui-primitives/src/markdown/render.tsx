@@ -111,7 +111,13 @@ export interface MarkdownFileMentions {
    * @returns The opener with its accessible label and full-path title, or
    * undefined when the token names no known file — it then stays inert code.
    */
-  resolve(value: string): { open: () => void; label: string; title: string } | undefined
+  resolve(value: string): {
+    /** Same-origin download URL; preferred over `open` when present. */
+    href?: string
+    open?: () => void
+    label: string
+    title: string
+  } | undefined
 }
 
 /**
@@ -244,15 +250,29 @@ function renderNode(node: Md.RootContent, key: Key, context: MarkdownRenderConte
       if (mention !== undefined) {
         return (
           <code key={key}>
-            <button
-              type="button"
-              className={css.fileMention}
-              title={mention.title}
-              aria-label={mention.label}
-              onClick={mention.open}
-            >
-              {value}
-            </button>
+            {mention.href === undefined
+              ? (
+                <button
+                  type="button"
+                  className={css.fileMention}
+                  title={mention.title}
+                  aria-label={mention.label}
+                  onClick={mention.open}
+                >
+                  {value}
+                </button>
+              )
+              : (
+                <a
+                  className={css.fileMention}
+                  href={mention.href}
+                  download
+                  title={mention.title}
+                  aria-label={mention.label}
+                >
+                  {value}
+                </a>
+              )}
           </code>
         )
       }

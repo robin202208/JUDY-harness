@@ -233,6 +233,25 @@ export type RequestHeaderReason = 'initial' | 'resume' | 'change'
  * sequence numbers stay contiguous, including raw chunks, so persistence can
  * store the canonical log verbatim.
  */
+/** Paths one turn created, modified, or removed, as published to clients. */
+export interface TurnDeliverables {
+  /** The turn these facts belong to. */
+  readonly turn: number
+  /** Workspace root every path below is resolved against. */
+  readonly root: string
+  /** Absolute paths created during the turn, sorted. */
+  readonly created: readonly string[]
+  /** Absolute paths whose version token moved, sorted. */
+  readonly modified: readonly string[]
+  /** Absolute paths the turn deleted, sorted; never rendered as a download. */
+  readonly removed: readonly string[]
+  /**
+   * True when a snapshot cap ended a walk early. Consumers present the set as
+   * possibly incomplete instead of claiming it is exhaustive.
+   */
+  readonly truncated: boolean
+}
+
 export interface SessionEventMap {
   /**
    * Opens turn `turn` before the loop claims queued input or runs pre-step.
@@ -250,6 +269,17 @@ export interface SessionEventMap {
    * reported live and does not prevent later work.
    */
   'turn/end': { turn: number; reason: TurnEndReason }
+  /**
+   * What a completed turn wrote, derived from workspace version snapshots taken
+   * between its `turn/start` and its `turn/end`. UI-facing and model-invisible:
+   * it exists because shell commands report no file locations, so neither the
+   * tool stream nor the closing prose can name what a script produced.
+   *
+   * Paths are absolute and rooted at `root`, the same unit tool `locations`
+   * carry, so a consumer can union the two without a lookup. `removed` is
+   * carried for diff reports and never rendered as a download.
+   */
+  'turn/deliverables': TurnDeliverables
   /** Opens step `step` of turn `turn` — one model call plus the tool executions it requested. */
   'step/start': { turn: number; step: number }
   /** Closes step `step` of turn `turn`. */

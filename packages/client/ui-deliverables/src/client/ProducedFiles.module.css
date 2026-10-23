@@ -34,6 +34,7 @@
    full paths are long, while the measured lane stays on one row. */
 .file {
   flex: 0 0 auto;
+  text-decoration: none;
   max-width: 320px;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -100,6 +100,9 @@ export const deliverablesDefinition: ConversationNodeDefinition<DeliverablesStat
   match: (event) => {
     if (event.type === 'turn/start') return { id: String(event.data.turn), role: 'start' }
     if (event.type === 'tool/call') return { id: String(event.data.turn), role: 'update' }
+    // The host publishes what the filesystem saw at the turn boundary, which is
+    // the only source for files a shell command wrote: those report no location.
+    if (event.type === 'turn/deliverables') return { id: String(event.data.turn), role: 'update' }
     if (event.type === 'tool/result' && isAppendSurfaceEvent(event)) {
       return { id: String(event.data.turn), role: 'update' }
     }
@@ -117,6 +120,15 @@ export const deliverablesDefinition: ConversationNodeDefinition<DeliverablesStat
         match.view?.for === 'call' ? match.view.view : null,
       )
       return { ...context.state, calls }
+    }
+    if (match.event.type === 'turn/deliverables') {
+      // Absolute paths, the same unit tool locations use, so the union below
+      // compares strings directly and a file both sources saw stays one entry.
+      const additions = [...match.event.data.created, ...match.event.data.modified]
+        .map(path => ({ seq: match.event.seq, path }))
+      return additions.length === 0
+        ? context.state
+        : { ...context.state, produced: [...context.state.produced, ...additions] }
     }
     if (match.event.type !== 'tool/result') return context.state
     const result = match.event.data.message.content[0]
@@ -160,6 +172,57 @@ export function basename(path: string): string {
  * @returns The resolver MarkdownText consumes; the full path rides `title`,
  * the same disambiguator the row's chips carry.
  */
+/** Same-origin endpoint that streams one Host file as an attachment. */
+const DOWNLOAD_PREFIX = '/files/download?path='
+
+/**
+ * Build the browser download URL for one absolute Host path.
+ * @param path - absolute path on the Host.
+ * @returns same-origin URL the files service authorizes and serves.
+ */
+export function fileDownloadHref(path: string): string {
+  return `${DOWNLOAD_PREFIX}${encodeURIComponent(path)}`
+}
+
+/**
+ * Whether an authored token reads as an absolute file path rather than a
+ * command, URL, or prose fragment. Deliberately conservative: absolute,
+ * whitespace-free, and a final segment carrying an extension.
+ * @param value - inline-code token exactly as authored.
+ * @returns true when the token should become a download link.
+ */
+export function looksLikeAbsoluteFile(value: string): boolean {
+  if (!value.startsWith('/') || value.length > 400) return false
+  if (/\s/.test(value) || value.includes('://')) return false
+  const base = value.slice(value.lastIndexOf('/') + 1)
+  return base.length > 1 && base.includes('.') && !base.startsWith('.')
+}
+
+/**
+ * Prose vocabulary for every assistant message: produced files first (their
+ * full paths are known), then any absolute file path the model typed. Both
+ * render as browser downloads; the files service enforces the allowed roots.
+ * @param paths - produced file paths claimed by the closing turn (may be empty).
+ * @param openFile - Host opener, kept for non-download consumers.
+ * @param label - locale-bound accessible label for one path.
+ * @returns resolver the chat markdown renderer consumes.
+ */
+export function proseFileMentions(
+  paths: readonly string[],
+  openFile: (path: string) => void,
+  label: (path: string) => string,
+): MarkdownFileMentions {
+  const produced = producedFileMentions(paths, openFile, label)
+  return {
+    resolve(value) {
+      const hit = produced.resolve(value)
+      if (hit !== undefined) return { ...hit, href: fileDownloadHref(hit.title) }
+      if (!looksLikeAbsoluteFile(value)) return undefined
+      return { href: fileDownloadHref(value), label: label(value), title: value }
+    },
+  }
+}
+
 export function producedFileMentions(
   paths: readonly string[],
   openFile: (path: string) => void,
@@ -167,15 +230,27 @@ export function producedFileMentions(
 ): MarkdownFileMentions {
   return {
     resolve(value) {
-      const path = paths.includes(value) ? value : onlyPathWithBasename(paths, value)
+      const path = resolveProducedPath(paths, value)
       if (path === undefined) return undefined
       return { open: () => { openFile(path) }, label: label(path), title: path }
     },
   }
 }
 
-/** The single produced path whose basename is exactly `value`, else undefined. */
-function onlyPathWithBasename(paths: readonly string[], value: string): string | undefined {
-  const matches = paths.filter(path => basename(path) === value)
-  return matches.length === 1 ? matches[0] : undefined
+/**
+ * Resolve a mention to one produced path. Exact path wins, then a unique
+ * basename, then a unique path suffix — the last one is what lets the closing
+ * prose name a file the way the writer sees it (`out/report.xlsx`) instead of
+ * repeating the absolute path. Two candidates at the same level stay inert:
+ * opening the wrong file is worse than opening nothing.
+ * @param paths - the turn's produced paths.
+ * @param value - the authored token, relative or absolute.
+ * @returns the resolved path, or undefined when ambiguous or unknown.
+ */
+export function resolveProducedPath(paths: readonly string[], value: string): string | undefined {
+  if (paths.includes(value)) return value
+  const byBasename = paths.filter(path => basename(path) === value)
+  if (byBasename.length === 1) return byBasename[0]
+  const bySuffix = paths.filter(path => path.endsWith(`/${value}`) || path.endsWith(`\\${value}`))
+  return bySuffix.length === 1 ? bySuffix[0] : undefined
 }

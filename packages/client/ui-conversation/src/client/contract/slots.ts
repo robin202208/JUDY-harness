@@ -298,12 +298,14 @@ export interface ConvViewOwnerProps {
  */
 export interface ChatFileMentions {
   /**
-   * Mention vocabulary for the closing message the owner currency names.
-   * @param owner - Turn-tail owner currency (Turn data, closing seq, opener).
-   * @returns The resolver MarkdownText consumes, or undefined when the turn
-   * produced nothing worth linking.
+   * Mention vocabulary for one message. The closing message's owner carries
+   * the turn's produced files; every other message passes no owner and still
+   * gets the provider's path-shaped vocabulary (absolute file paths).
+   * @param owner - Turn-tail owner currency for the closing message, else undefined.
+   * @returns The resolver MarkdownText consumes, or undefined when the
+   * provider links nothing here.
    */
-  forClosing(owner: TurnTailOwnerProps): MarkdownFileMentions | undefined
+  forProse(owner?: TurnTailOwnerProps): MarkdownFileMentions | undefined
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -363,7 +365,7 @@ export interface ChatNodeOwnerProps {
   forkAt: (seq: number) => void
   /** Resolve a session-authorized historical image for inline display. */
   loadImage: (attachment: ImageAttachmentRef) => Promise<string>
-  fileMentions: (owner: TurnTailOwnerProps) => MarkdownFileMentions | undefined
+  fileMentions: (owner?: TurnTailOwnerProps) => MarkdownFileMentions | undefined
 }
 
 /** Full props of one registered keyed Chat business renderer. */
@@ -415,6 +417,8 @@ export interface ConversationInjected {
    * Connect the selected Workspace and open its reusable/new blank session.
    * When a blank session is already current, carry its draft to the target.
    */
+  /** Start a blank session in the current/recent workspace (the sidebar New Session action). */
+  startBlankSession?: () => void
   selectWorkspace: (workspaceId: WorkspaceId) => Promise<void>
   /**
    * Framework-bound sources. `composerBlock` is this session's block when a
@@ -704,7 +708,7 @@ export interface ChatViewInjected {
    * the provider in or out takes effect live). Undefined when the service is
    * absent or the turn produced nothing worth linking.
    */
-  fileMentions: (owner: TurnTailOwnerProps) => MarkdownFileMentions | undefined
+  fileMentions: (owner?: TurnTailOwnerProps) => MarkdownFileMentions | undefined
 }
 
 /** Full chat-view component props: runtime & its Tool/command/tail render shares & store & injected & locale seat. */

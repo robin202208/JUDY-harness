@@ -211,6 +211,7 @@ export function apply(ctx: Context): void {
     },
     inject: (sessionId: SessionId | undefined): ConversationInjected => ({
       hooks: { composerBlock: sessionId === undefined ? ABSENT_BLOCK : composerBlocks.storeFor(sessionId) },
+      startBlankSession: () => { ctx.workspaces.startSession() },
       selectWorkspace: async (workspaceId) => {
         const nextId = await workspaces.connectWorkspace(workspaceId)
         if (sessionId !== undefined && nextId !== sessionId) {
@@ -391,7 +392,7 @@ export function apply(ctx: Context): void {
           actions.select(target)
           layout.openDetails()
         },
-        fileMentions: owner => ctx.get('chatFileMentions')?.forClosing(owner),
+        fileMentions: owner => ctx.get('chatFileMentions')?.forProse(owner),
         openFile: (path) => {
           const cwd = sessions.list.getSnapshot().byId[sessionId]?.cwd
           void workspaces.openPath(resolveWorkspacePath(cwd, path)).catch(() => {

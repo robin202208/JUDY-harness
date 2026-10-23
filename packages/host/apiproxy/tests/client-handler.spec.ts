@@ -38,6 +38,7 @@ function scriptedApi(overrides: {
       list: r => ok(r, { items: [] }),
       search: r => ok(r, { items: [], hasMore: false }),
       create: r => ok(r, { sessionId: sid('s-new') }),
+      delete: r => ok(r, { deleted: true }),
       history: r => ok(r, {
         events: [],
         hasMore: false,

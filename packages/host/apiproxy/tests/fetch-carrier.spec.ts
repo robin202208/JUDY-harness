@@ -44,6 +44,9 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
       async create(request) {
         return { rpcId: request.rpcId, result: { ok: true, value: { sessionId: 's-new' as never } } }
       },
+      async delete(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { deleted: true } } }
+      },
       async history(request) {
         if (request.payload.sessionId === ('with-projections' as never)) {
           return {

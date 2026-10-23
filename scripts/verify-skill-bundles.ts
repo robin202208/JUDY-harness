@@ -99,7 +99,7 @@ function promisedResources(body: string): string[] {
     ...[...body.matchAll(/\[[^\]]*\]\(([^)\s]+)/g)].map(match => match[1]),
     ...[...body.matchAll(/`([^`\n]+)`/g)].map(match => match[1]),
     ...[...body.matchAll(/```[\s\S]*?```/g)].map(match => match[0]),
-  ]
+  ].filter((source): source is string => source !== undefined)
   const prose = body
     .replace(/\[[^\]]*\]\(([^)\s]+)[^)]*\)/g, '$1')
     .replace(/\$\{?\w+\}?\//g, '')

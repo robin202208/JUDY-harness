@@ -64,13 +64,6 @@
         fallbackMaxBytes: 40
         maxTitleBytes: 80
 
-    # Publishes turn/deliverables: which files each turn wrote, from workspace
-    # version snapshots. Shell-command writes report no tool location, so this
-    # is the only source that sees them.
-    - id: turn-deliverables
-      name: '@deepseek-ai/dsh-turn-deliverables'
-
-
     - id: session-title-llm
       name: '@deepseek-ai/dsh-session-title-first-prompt-llm'
       config:

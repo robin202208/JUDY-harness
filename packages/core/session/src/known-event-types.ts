@@ -76,7 +76,6 @@ export const KNOWN_SESSION_EVENT_TYPES: ReadonlySet<string> = new Set([
   'tool/ptc-dispatch',
   'tool/ptc-dispatch-start',
   'tool/result',
-  'turn/deliverables',
   'turn/end',
   'turn/start',
   'user/message',

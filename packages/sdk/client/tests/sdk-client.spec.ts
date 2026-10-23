@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ReasoningEffortId } from '@deepseek-ai/dsh-llm'
 import {
-  JudyHarness,
+  DeepSeekHarness,
   HarnessClient,
   HarnessSession,
   JsonRpcResponseError,
@@ -138,7 +138,7 @@ describe('DeepSeekHarness', () => {
           async * [Symbol.asyncIterator]() {},
         }),
       },
-    } as unknown as JudyHarness
+    } as unknown as DeepSeekHarness
 
     const result = await new HarnessSession(harness, 'owned').run('go')
 
@@ -416,7 +416,7 @@ describe('DeepSeekHarness', () => {
   })
 
   it('supports await using disposal', async () => {
-    let captured: JudyHarness
+    let captured: DeepSeekHarness
     {
       await using harness = createProcessDeepSeekHarness(fakeLaunch())
       captured = harness
@@ -592,7 +592,7 @@ describe('HarnessClient', () => {
 
     // A bare unbounded request with omitted params sends `{}` on the wire.
     const identity = await client.request('initialize') as { serverInfo: { name: string } }
-    expect(identity.serverInfo.name).toBe('judy-harness-sdk-runtime')
+    expect(identity.serverInfo.name).toBe('deepseek-harness-sdk-runtime')
 
     // Async iteration consumes queued items and then parks.
     const collected: string[] = []

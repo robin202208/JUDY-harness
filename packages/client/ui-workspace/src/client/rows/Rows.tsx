@@ -246,13 +246,6 @@ export function ProjectRowItem({ group, containsCurrentDescendant = false, onTog
       role="treeitem"
       aria-expanded={row.expanded}
       onClick={onToggle}
-      onContextMenu={actions === undefined
-        ? undefined
-        : (e) => {
-          // 右键直接打开工作区操作菜单（重命名 / 删除）
-          e.preventDefault()
-          setMenuOpen(true)
-        }}
       draggable={drag !== undefined}
       onDragStart={drag === undefined
         ? undefined

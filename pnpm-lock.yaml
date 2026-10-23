@@ -12822,21 +12822,6 @@ importers:
         specifier: workspace:*
         version: link:../../interaction/user-approval
 
-  packages/session/turn-deliverables:
-    devDependencies:
-      '@deepseek-ai/cordis':
-        specifier: workspace:^
-        version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
-      '@deepseek-ai/dsh-session':
-        specifier: workspace:^
-        version: link:../../core/session
-      '@deepseek-ai/dsh-workspace':
-        specifier: workspace:^
-        version: link:../../workspace/workspace
-
   packages/settings/settings:
     dependencies:
       '@deepseek-ai/cordis-plugin-loader':

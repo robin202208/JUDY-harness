@@ -175,13 +175,7 @@ export interface MarkdownFileMentions {
    * @returns The opener with its accessible label and full-path title, or
    * undefined when the token names no known file — it then stays inert code.
    */
-  resolve(value: string): {
-    /** Same-origin download URL; preferred over `open` when present. */
-    href?: string
-    open?: () => void
-    label: string
-    title: string
-  } | undefined
+  resolve(value: string): { open: () => void; label: string; title: string } | undefined
 }
 
 /**

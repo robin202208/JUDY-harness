@@ -37,7 +37,7 @@ const HARNESS_SOURCE_GUIDANCE = 'The checkout location and current working direc
   + 'never infer the working directory from the checkout path. Use pwd to determine the current working directory. '
   + 'Use this checkout only to inspect or extend DSH itself.'
 
-const HARNESS_SOURCE_PROMPT = `The runtime context names the DeepSeek Harness implementation checkout. ${HARNESS_SOURCE_GUIDANCE}`
+const HARNESS_SOURCE_PROMPT = `The runtime context names the JUDY implementation checkout. ${HARNESS_SOURCE_GUIDANCE}`
 
 const WEB_SURFACE_GUIDANCE = 'When the user refers to "this page", "this GUI", or "this app" without naming another target, they mean this GUI. '
   + 'The browser provides no implicit DOM, route, or screenshot context. '
@@ -57,7 +57,7 @@ const WEB_SURFACE_PROMPT = `You are interacting with the user through the DeepSe
  * rewrite their logged prompt.
  */
 const LEGACY_SOURCE = {
-  prefix: 'The DeepSeek Harness implementation checkout is at ',
+  prefix: 'The JUDY implementation checkout is at ',
   suffix: '. The checkout location and current working directory are separate values and may differ; '
     + 'never infer the working directory from this path. Use pwd to determine the current working directory. '
     + 'Use this checkout only to inspect or extend DSH itself.',
@@ -148,7 +148,7 @@ export function apply(ctx: Context): void {
     name: HARNESS_SOURCE,
     order: ctx.systemPrompt.getContextOrder('HARNESS_SOURCE'),
     interpolate: false,
-    text: `Current DeepSeek Harness implementation checkout: ${JSON.stringify(SOURCE_ROOT)}.`,
+    text: `Current JUDY implementation checkout: ${JSON.stringify(SOURCE_ROOT)}.`,
   })
   ctx.systemPrompt.section({
     name: WEB_SURFACE,

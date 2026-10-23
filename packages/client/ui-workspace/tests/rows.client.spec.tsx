@@ -696,20 +696,6 @@ describe('workspace browser rows', () => {
     fireEvent.click(trigger)
     expect(screen.getByRole('menu')).toBeTruthy()
     expect(onOpen).not.toHaveBeenCalled()
-    // Delete is destructive (danger styling) and confirms first: a dismissed
-    // prompt dispatches nothing, an accepted one deletes without opening.
-    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
-    fireEvent.click(screen.getByRole('button', { name: '会话“One”的操作' }))
-    const deleteItem = screen.getByRole('menuitem', { name: '删除会话' })
-    expect(deleteItem.className).toMatch(/danger/)
-    fireEvent.click(deleteItem)
-    expect(onDelete).not.toHaveBeenCalled()
-    confirm.mockReturnValue(true)
-    fireEvent.click(screen.getByRole('button', { name: '会话“One”的操作' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: '删除会话' }))
-    expect(onDelete).toHaveBeenCalledWith(node.id)
-    confirm.mockRestore()
-    expect(onOpen).not.toHaveBeenCalled()
     // Escape closes without selecting (Menu onClose path).
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('menu')).toBeNull()

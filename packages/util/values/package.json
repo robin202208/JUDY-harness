@@ -1,13 +1,13 @@
 {
   "name": "@deepseek-ai/dsh-util-values",
-  "description": "Duplicate-install-safe value primitives for the DeepSeek Harness",
+  "description": "Duplicate-install-safe value primitives for the JUDY",
   "version": "0.2.1-rc.2",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/robin202208/JUDY-harness.git",
     "directory": "packages/util/values"
   },
   "type": "module",

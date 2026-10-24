@@ -1,0 +1,46 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/im-bridge/README.md
+/:
+  en: 18a2d0793bac9e70
+  zh: 0fe1b9a9b94de905
+/deepseek-ai-dsh-experimental-im-bridge:
+  en: fb77bad93e3b4e81
+  zh: 0d855b8bd9b18120
+/deepseek-ai-dsh-experimental-im-bridge/summary:
+  en: 8588dcade5e213a5
+  zh: b476748e893b7935
+/deepseek-ai-dsh-experimental-im-bridge/table-of-contents:
+  en: 46ad98b0d8a0a412
+  zh: de7785c65413aaf8
+/deepseek-ai-dsh-experimental-im-bridge/use-this-package:
+  en: f54ef1762f9c7324
+  zh: 7206917bade02c82
+/deepseek-ai-dsh-experimental-im-bridge/configuration:
+  en: 03a211f732689f2a
+  zh: 6a8274c9dd52c6c3
+/deepseek-ai-dsh-experimental-im-bridge/understand-the-implementation:
+  en: 06035de44a5b7a61
+  zh: cc917921948db1eb
+/deepseek-ai-dsh-experimental-im-bridge/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-experimental-im-bridge/model-experience/inbound-chat-text:
+  en: 9b9c8893bdd07e82
+  zh: 70e7cef701181c4a
+/deepseek-ai-dsh-experimental-im-bridge/model-experience/inbound-chat-text/what-the-model-sees:
+  en: 9c71f25290700026
+  zh: 46913ea7e0da60a0
+/deepseek-ai-dsh-experimental-im-bridge/model-experience/inbound-chat-text/token-effect:
+  en: 65987ba709d0268f
+  zh: 36d89706bff7f106
+/deepseek-ai-dsh-experimental-im-bridge/model-experience/inbound-chat-text/kv-cache-effect:
+  en: 8aa7a93811194345
+  zh: 936ee9f370847b18
+/deepseek-ai-dsh-experimental-im-bridge/known-limitations-and-deferred-work:
+  en: 194fbf6b5097bed4
+  zh: 70bcded3f3812f5a
+/deepseek-ai-dsh-experimental-im-bridge/known-limitations-and-deferred-work/dev-note:
+  en: 3b0c78b544f4f9cd
+  zh: 443e915149c2321f

@@ -1,0 +1,12 @@
+# Two-way IM bridges: one Agent Session per chat for Feishu, DingTalk and
+# WeCom. Credentials and allowlists are configured by the instance profile:
+#   - id: im-bridge
+#     config:
+#       providers:
+#         - kind: wecom
+#           botId: '...'
+#           secret: '...'
+#           workspace: '/path/to/workspace'
+- insert:
+    - id: im-bridge
+      name: '@deepseek-ai/dsh-experimental-im-bridge'

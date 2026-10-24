@@ -5,8 +5,9 @@
   gap: 6px;
   height: 28px;
   padding: 0 10px;
-  border: 1px solid var(--dsw-alias-border-l2, rgb(0 0 0 / 8%));
+  border: 0.5px solid var(--dsw-alias-border-l2, rgb(0 0 0 / 8%));
   border-radius: 999px;
+  corner-shape: round;
   background: transparent;
   color: var(--dsw-alias-label-secondary, #5a5a63);
   font: 12.5px/1 -apple-system, "PingFang SC", system-ui, sans-serif;

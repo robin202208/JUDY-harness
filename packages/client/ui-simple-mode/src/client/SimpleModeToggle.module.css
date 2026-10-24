@@ -1,0 +1,20 @@
+/* The toggle itself: a quiet text button living in the composer's tool row. */
+.toggle {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  color: var(--dsw-alias-label-caption, #9a9aa2);
+  font: 12px/1 -apple-system, "PingFang SC", system-ui, sans-serif;
+  text-decoration: underline;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  color: var(--dsw-alias-label-secondary, #5a5a63);
+}
+
+/* Simple mode: the chips tagged by their own packages step out of the row. */
+:global(html[data-judy-simple]) [data-judy-chip] {
+  display: none !important;
+}

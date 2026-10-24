@@ -103,6 +103,8 @@
     { "path": "./packages/client/ui-conversation/tsconfig.client.json" },
     { "path": "./packages/client/ui-tool" },
     { "path": "./packages/client/ui-deliverables/tsconfig.client.json" },
+    { "path": "./packages/client/ui-download" },
+    { "path": "./packages/client/ui-simple-mode" },
     { "path": "./packages/client/ui-workflow-run" },
     { "path": "./packages/client/ui-workspace" },
     { "path": "./packages/client/ui-input-trigger" },

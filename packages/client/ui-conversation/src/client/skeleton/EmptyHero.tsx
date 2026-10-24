@@ -155,6 +155,15 @@ export function HeroShell({ t, renderSlot, children }: HeroShellProps) {
             <span className={css.previewBadge}>{t('hero.preview')}</span>
           </span>
         </div>
+        {/* Positioning line: say what JUDY changes before the first prompt. */}
+        <div className={css.positioning}>
+          <p className={css.tagline}>{t('hero.tagline')}</p>
+          <ul className={css.pillars}>
+            <li>{t('hero.pillar1')}</li>
+            <li>{t('hero.pillar2')}</li>
+            <li>{t('hero.pillar3')}</li>
+          </ul>
+        </div>
         <div className={css.body}>
           {/* The composer remains mounted outside this component. */}
         </div>

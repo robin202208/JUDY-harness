@@ -41,6 +41,7 @@ import type { PropsLocale, PropsRenderSlots, PropsRuntime } from '@deepseek-ai/d
 import type { ModelLabelOwner, ModelSelectInjected } from './slots.ts'
 import css from './ModelSelect.module.css'
 import { orderModelProviders } from './provider-order.ts'
+import { friendlyError } from './friendly-error.ts'
 
 /** Which pane the dropdown shows: the two-row root or one drilled-in list. */
 type Pane = 'root' | 'model' | 'effort'
@@ -385,7 +386,7 @@ export function ModelSelect(
       seq: toastSeq.current,
       text: error.code === 'session/writer-held'
         ? t('error.sessionInUse')
-        : t('error.action', { message: `${error.code}: ${error.message}` }),
+        : t('error.action', { message: friendlyError(t, `${error.code}: ${error.message}`) }),
     })
   }
 
@@ -464,6 +465,7 @@ export function ModelSelect(
         ref={triggerRef}
         type="button"
         className={css.trigger}
+        data-judy-chip="1"
         aria-label={triggerAria}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -559,7 +561,7 @@ export function ModelSelect(
               )}
               {state.error !== null && lastActionRef.current === 'load' && (
                 <div className={css.error}>
-                  <span>{t('error.action', { message: state.error })}</span>
+                  <span>{t('error.action', { message: friendlyError(t, state.error) })}</span>
                   <button type="button" className={css.retry} onClick={reload}>{t('retry')}</button>
                 </div>
               )}
@@ -630,7 +632,7 @@ export function ModelSelect(
             <>
               {state.error !== null && lastActionRef.current === 'load' && (
                 <div className={css.error}>
-                  <span>{t('error.action', { message: state.error })}</span>
+                  <span>{t('error.action', { message: friendlyError(t, state.error) })}</span>
                   <button type="button" className={css.retry} onClick={reload}>{t('action.reload')}</button>
                 </div>
               )}

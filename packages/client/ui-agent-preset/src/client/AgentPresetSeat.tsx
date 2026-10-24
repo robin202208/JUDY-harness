@@ -190,6 +190,7 @@ export function AgentPresetSeat({
           <button
             type="button"
             className={css.seat}
+            data-judy-chip="1"
             aria-haspopup="menu"
             aria-expanded={open && options.length > 0}
             title={(typeof state.error === 'object' ? state.error?.reason : state.error) ?? t('seatHint')}

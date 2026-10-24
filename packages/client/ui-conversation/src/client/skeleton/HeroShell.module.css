@@ -230,3 +230,40 @@
   line-height: 18px;
   color: var(--dsw-alias-state-error-primary);
 }
+
+/* Hero positioning line: the harness advantage, stated before the input. */
+.positioning {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.tagline {
+  margin: 0;
+  max-width: 520px;
+  color: var(--dsw-alias-label-caption);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.pillars {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pillars li {
+  padding: 3px 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 999px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11.5px;
+  line-height: 18px;
+}

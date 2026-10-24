@@ -175,6 +175,7 @@ export function PermissionSelect({
           <button
             type="button"
             className={css.trigger}
+            data-judy-chip="1"
             aria-label={t('mode', { name: currentLabel })}
             title={current === undefined ? undefined : optionDescription(current, t)}
             disabled={locked || busy}

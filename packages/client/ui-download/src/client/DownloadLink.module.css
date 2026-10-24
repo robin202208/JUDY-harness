@@ -1,0 +1,21 @@
+/* The composer's download seat: a quiet pill matching the tool row height. */
+.entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--dsw-alias-border-l2, rgb(0 0 0 / 8%));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary, #5a5a63);
+  font: 12.5px/1 -apple-system, "PingFang SC", system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.entry:hover {
+  background: var(--dsw-alias-interactive-bg-hover, rgb(0 0 0 / 4%));
+  color: var(--dsw-alias-label-primary, #1d1d1f);
+}

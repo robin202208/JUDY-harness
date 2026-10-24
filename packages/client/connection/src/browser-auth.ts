@@ -21,6 +21,13 @@ const STORED_SECRET_VERSION = 1
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]*$/
 const PROCESS_LAUNCH_TOKENS = new WeakMap<object, string>()
 
+/**
+ * Header stamped by a loopback login proxy after it authenticates the browser.
+ * Honored only when the deployment opts in through `DSH_TRUST_PROXY_AUTH=1`;
+ * the application listener remains loopback-only, so no remote client can set it.
+ */
+const PROXY_AUTH_HEADER = 'x-dsh-proxy-authenticated'
+
 interface StoredSecretPayload {
   readonly version: typeof STORED_SECRET_VERSION
   readonly secret: string
@@ -369,6 +376,21 @@ export class BrowserAuth {
   }
 
   private authenticate(request: ConnectionTrustRequest, secure: boolean): CookiePayload | undefined {
+    // A configured login proxy owns browser authentication; trust its stamped
+    // header for the browser peer while API credentials keep their own path.
+    if (process.env.DSH_TRUST_PROXY_AUTH === '1'
+      && header(request.headers, PROXY_AUTH_HEADER) === '1') {
+      const trustedAuthority = requestAudience(request.headers, secure)
+      if (trustedAuthority !== undefined) {
+        const issuedAt = Date.now()
+        return {
+          version: COOKIE_PAYLOAD_VERSION,
+          authority: trustedAuthority,
+          issuedAt,
+          expiresAt: issuedAt + 1,
+        }
+      }
+    }
     const authority = requestAudience(request.headers, secure)
     const rawCookie = header(request.headers, 'cookie')
     if (authority === undefined || rawCookie === undefined) return undefined

@@ -368,3 +368,22 @@ describe('BrowserAuth', () => {
       .rejects.toThrow(/safe timestamp range/u)
   })
 })
+describe('trusted login proxy', () => {
+  it('accepts the proxy header only when the deployment opts in', async () => {
+    const auth = await createAuth(new RecordCredentials())
+    const proxyRequest = {
+      headers: { host: '127.0.0.1:3080', 'x-dsh-proxy-authenticated': '1' },
+    }
+
+    expect(auth.isAuthenticated(proxyRequest)).toBe(false)
+
+    vi.stubEnv('DSH_TRUST_PROXY_AUTH', '1')
+    expect(auth.isAuthenticated(proxyRequest)).toBe(true)
+    expect(auth.isAuthenticated({ headers: { host: '127.0.0.1:3080' } })).toBe(false)
+    // The proxy path authenticates the browser, never an API operator.
+    expect(auth.authenticateApi(proxyRequest)).toBeUndefined()
+
+    vi.unstubAllEnvs()
+    expect(auth.isAuthenticated(proxyRequest)).toBe(false)
+  })
+})

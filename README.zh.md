@@ -48,18 +48,18 @@ pnpm dsh web
 
 - 通过 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提交反馈或 bug 报告。
 - 为你的插件仓库添加 [`dsh-plugin`](https://github.com/topics/dsh-plugin) 话题，便于被发现。
-- 欢迎加入 JUDY 企微群！扫描下方二维码填写入群问卷，小助手会定期发送入群邀请。
+- 欢迎加入 JUDY 企微群！扫描下方二维码加入「harness 社区支持群」，群内获取使用支持与产品更新。
 
 <table>
   <thead>
     <tr>
-      <th align="center">入群问卷</th>
+      <th align="center">社区支持群</th>
       <th align="center">微信公众号</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td align="center"><a href="https://trtgsjkv6r.feishu.cn/share/base/form/shrcnIt5twSVdLGD52KJBckGCgg"><img src="https://cdn.deepseek.com/harness/readme/community-wecom-survey.png" alt="JUDY 入群问卷二维码" width="180" height="180"></a></td>
+      <td align="center"><img src="assets/community-wecom-group.png" alt="harness 社区支持群二维码" width="180" height="180"></td>
       <td align="center"><img src="https://cdn.deepseek.com/harness/readme/community-wechat-official-account.png" alt="JUDY 团队微信公众号二维码" width="180" height="180"></td>
     </tr>
   </tbody>

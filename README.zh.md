@@ -54,13 +54,11 @@ pnpm dsh web
   <thead>
     <tr>
       <th align="center">社区支持群</th>
-      <th align="center">微信公众号</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td align="center"><img src="assets/community-wecom-group.png" alt="harness 社区支持群二维码" width="180" height="180"></td>
-      <td align="center"><img src="https://cdn.deepseek.com/harness/readme/community-wechat-official-account.png" alt="JUDY 团队微信公众号二维码" width="180" height="180"></td>
     </tr>
   </tbody>
 </table>

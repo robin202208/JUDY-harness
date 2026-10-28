@@ -243,7 +243,7 @@ describe('produced-file Turn data', () => {
     const delivered = presentedForClosing(tailOwner(data, 5))
     const opened = vi.fn()
     const mentions = producedFileMentions([...new Set([...paths, ...delivered.map(file => file.path)])], opened, target => target)
-    mentions.resolve('report.txt')?.open()
+    mentions.resolve('report.txt')?.open?.()
     expect(opened).toHaveBeenCalledWith(path)
     expect(mentions.resolve('report.txt')?.title).toBe(path)
   })
@@ -284,7 +284,7 @@ describe('produced-file Turn data', () => {
     const paths = producedForClosing(deliverablesOf(value))
     expect(paths).toEqual([path])
     const opened = vi.fn()
-    producedFileMentions(paths, opened, target => target).resolve('report.txt')?.open()
+    producedFileMentions(paths, opened, target => target).resolve('report.txt')?.open?.()
     expect(opened).toHaveBeenCalledWith(path)
   })
 
@@ -574,6 +574,9 @@ describe('ChangedFiles card', () => {
     const card = view.container.querySelector('[data-changed-files]')!
     expect(within(card as HTMLElement).getByText(t('changes.singleTitle', { name: 'example.scss' }))).toBeTruthy()
     expect(card.querySelector('ul')).toBeNull()
+    const download = view.getByRole('link')
+    expect(download.getAttribute('href')).toBe('/files/workspace/src/example.scss')
+    expect(download.getAttribute('download')).not.toBeNull()
     expect(view.queryByRole('button', { name: /Show all|Collapse changed|展开全部|收起改动/ })).toBeNull()
     expect(card.querySelector('svg [data-file-type-mark]')?.children).toHaveLength(3)
     const open = view.getByRole('button', { name: t('changes.viewDiff', { name: 'src/example.scss' }) })
@@ -788,7 +791,7 @@ describe('producedFileMentions resolver', () => {
       { path: first, argumentPath: 'out/report.txt' },
       { path: first, argumentPath: './out/report.txt' },
     ])
-    unique.resolve('out/report.txt')?.open()
+    unique.resolve('out/report.txt')?.open?.()
     expect(opened).toHaveBeenCalledWith(first)
     expect(unique.resolve('./out/report.txt')?.title).toBe(first)
     expect(unique.resolve('one/out/report.txt')).toBeUndefined()
@@ -811,7 +814,7 @@ describe('producedFileMentions resolver', () => {
     const byBasename = resolver.resolve('index.html')
     expect(byBasename?.label).toBe('打开 out/index.html')
     expect(byBasename?.title).toBe('out/index.html')
-    byBasename?.open()
+    byBasename?.open?.()
     expect(opened).toEqual(['out/index.html'])
     // An exact path resolves even when its basename is ambiguous.
     const exact = resolver.resolve('a/style.css')
@@ -878,12 +881,12 @@ describe('plugin registration', () => {
     const service = (ctx as { get(name: string): ChatFileMentions | undefined }).get('chatFileMentions')
     const mentions = service?.forClosing(owner, SessionId('viewed-session'))
     expect(mentions?.resolve('report.html')?.label).toBe('Open site/report.html in sidebar')
-    mentions?.resolve('report.html')?.open()
+    mentions?.resolve('report.html')?.open?.()
     expect(opened).toEqual(['site/report.html'])
     const canonical = '/project/child/out/report.txt'
     const moved = tailOwner({ produced: [{ seq: 2, path: canonical, argumentPath: 'out/report.txt' }] }, 3, previewPath => opened.push(previewPath))
     const movedMentions = service?.forClosing(moved, SessionId('moved-session'))
-    movedMentions?.resolve('out/report.txt')?.open()
+    movedMentions?.resolve('out/report.txt')?.open?.()
     expect(opened.at(-1)).toBe(canonical)
     expect(movedMentions?.resolve('out/report.txt')?.title).toBe(canonical)
 
@@ -896,7 +899,7 @@ describe('plugin registration', () => {
       for (const text of ['report.docx', 'out/report.docx']) {
         const mention = mentions?.resolve(text)
         expect(mention?.label).toBe('Open out/report.docx in sidebar')
-        mention?.open()
+        mention?.open?.()
       }
     }
     expect(preview.mock.calls).toEqual(Array.from({ length: 4 }, () => ['out/report.docx']))
@@ -995,7 +998,12 @@ describe('presented files', () => {
     fireEvent.click(expand)
     expect(view.container.querySelectorAll('[data-presented-file]')).toHaveLength(8)
     expect(view.getByRole('button', { name: 'Collapse delivered files' }).getAttribute('aria-expanded')).toBe('true')
-    expect(view.queryByRole('link')).toBeNull()
+    const downloads = view.getAllByRole('link')
+    expect(downloads).toHaveLength(8)
+    for (const link of downloads) {
+      expect(link.getAttribute('href')).toContain('/files/workspace/')
+      expect(link.getAttribute('download')).not.toBeNull()
+    }
     fireEvent.click(view.getByRole('button', { name: 'Preview report-0.docx in sidebar' }))
     expect(preview).toHaveBeenCalledTimes(1)
     expect(preview).toHaveBeenLastCalledWith('report-0.docx')

@@ -30,3 +30,28 @@
 .secondaryText[data-success] { animation-name: success-fade; animation-timing-function: ease-out; animation-fill-mode: forwards; }
 @keyframes success-fade { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .secondaryText[data-success] { animation-name: none; } }
+
+
+/* Download action contributed beside the host's native file actions. */
+.cardDownload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-right: 4px;
+  border-radius: 6px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.cardDownload:hover {
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.cardDownload:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+}
+
+.cardDownload svg { width: 14px; height: 14px; }

@@ -1,5 +1,5 @@
 /** Changed-files card: filled header, file rows with line counts, and a bottom fold control. */
-.card { --changes-fill: var(--dsw-static-neutral-50); --changes-hover: var(--dsw-static-neutral-100); display: flex; flex-direction: column; min-width: 0; margin-top: 4px; overflow: hidden; border: 0.5px solid var(--dsw-alias-border-l2); border-radius: var(--dsw-radius-lg); background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); }
+.card { position: relative; --changes-fill: var(--dsw-static-neutral-50); --changes-hover: var(--dsw-static-neutral-100); display: flex; flex-direction: column; min-width: 0; margin-top: 4px; overflow: hidden; border: 0.5px solid var(--dsw-alias-border-l2); border-radius: var(--dsw-radius-lg); background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); }
 .card[data-single='true'] { border-color: var(--dsw-alias-border-l1); }
 :global(body[data-ds-dark-theme]) .card { --changes-fill: var(--dsw-static-neutral-850); --changes-hover: var(--dsw-static-neutral-800); }
 .header { display: flex; align-items: center; gap: 10px; box-sizing: border-box; width: 100%; min-width: 0; height: 60px; margin: 0; padding: 8px 10px; border: 0; background: var(--changes-fill); color: inherit; font: inherit; text-align: left; }
@@ -7,6 +7,7 @@ button.header { cursor: pointer; transition: background-color 120ms ease; }
 button.header:hover:not(:disabled), button.header:focus-visible { background: var(--changes-hover); }
 button.header:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); }
 button.header:disabled { cursor: progress; }
+.card[data-single='true'] .header { padding-right: 44px; }
 .tile { display: grid; flex: none; place-items: center; box-sizing: border-box; width: 40px; height: 40px; border: 0.5px solid var(--dsw-alias-border-l1); border-radius: 10px; background: color-mix(in srgb, var(--dsw-static-neutral-00) 50%, transparent); }
 :global(body[data-ds-dark-theme]) .tile { background: color-mix(in srgb, var(--dsw-static-neutral-00) 5%, transparent); }
 .titles { display: flex; flex: 1; flex-direction: column; min-width: 0; }
@@ -19,7 +20,9 @@ button.header:disabled { cursor: progress; }
 .stat[data-error='true'], .counts[data-error='true'] { color: var(--dsw-alias-state-error-primary); }
 .added { color: var(--dsw-alias-state-success-primary); }
 .deleted { color: var(--dsw-alias-state-error-primary); }
+.list li { position: relative; }
 .list { margin: 0; padding: 0; list-style: none; border-top: 0.5px solid var(--dsw-alias-border-l2); }
+.row { padding-right: 44px; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; box-sizing: border-box; width: 100%; min-width: 0; min-height: 24px; margin: 0; padding: 7px 18px 7px 14px; border: 0; background: transparent; color: var(--dsw-alias-label-tertiary); cursor: pointer; font-family: var(--ds-font-family-code); font-size: 11px; line-height: 18px; text-align: left; }
 .row:hover:not(:disabled), .row:focus-visible { background: var(--dsw-alias-interactive-bg-hover); }
 .row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); }
@@ -35,3 +38,32 @@ button.header:disabled { cursor: progress; }
 
 .previewPath { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; color: var(--dsw-alias-label-tertiary); font-family: var(--ds-font-family-code); font-size: 12px; line-height: 20px; white-space: nowrap; }
 .preview [data-diff-note='metadata'], .preview [data-diff-hunk-header] { display: none; }
+
+
+/* Download action: one click files the produced file as an attachment. */
+.downloadAction, .rowDownload {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--dsw-alias-label-tertiary);
+  transform: translateY(-50%);
+}
+
+.downloadAction:hover, .rowDownload:hover {
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.downloadAction:focus-visible, .rowDownload:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+}
+
+.downloadAction svg, .rowDownload svg { width: 14px; height: 14px; }

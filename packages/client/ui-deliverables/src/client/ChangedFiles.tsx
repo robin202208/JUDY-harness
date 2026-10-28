@@ -1,13 +1,14 @@
 /** Turn changes use a compact single-file card or a header with a folded file list. */
 import { useEffect, useId, useRef, useState } from 'react'
 import { resolveWorkspacePath } from '@deepseek-ai/dsh-util-workspace-path'
-import { FileTypeIcon, HoverCard, IconChevronDownOutlineRegular, IconChevronUpOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
+import { FileTypeIcon, HoverCard, IconChevronDownOutlineRegular, IconChevronUpOutlineRegular, IconDownloadOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsLocale, SessionStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
 import { changesDiffUrl, type ChangesSummary } from '../changes.ts'
 import type { DeliverablesInjected } from './Deliverables.tsx'
 import { FileDiff } from './FileDiff.tsx'
 import diffCss from './FileDiff.module.css'
 import { basename } from './turn-deliverables.ts'
+import { fileDownloadHref } from './file-download.ts'
 import type { NS } from './locales.ts'
 import css from './ChangedFiles.module.css'
 
@@ -72,6 +73,10 @@ export function ChangedFiles({ changes, cwd, openReview, t, sessionId, useChange
         content={<ChangedFilePreview sessionId={sessionId} seq={changes.seq} index={0}
           display={resolveWorkspacePath(cwd, singleFile.path)} useChangesDiff={useChangesDiff}
           loadChangesDiff={loadChangesDiff} t={t} />} />
+      <a className={css.downloadAction} href={fileDownloadHref(resolveWorkspacePath(cwd, singleFile.path))}
+        download aria-label={t('changes.downloadAria', { name: basename(singleFile.path) })}>
+        <IconDownloadOutlineRegular />
+      </a>
       <span id={pathDescriptionId} hidden>{resolveWorkspacePath(cwd, singleFile.path)}</span>
     </>}
     {singleFile === undefined && <ul className={css.list}>
@@ -91,6 +96,10 @@ export function ChangedFiles({ changes, cwd, openReview, t, sessionId, useChange
                     : <Counts t={t} added={file.added} deleted={file.deleted} />}
               </span>
             </button>} />
+          <a className={css.rowDownload} href={fileDownloadHref(resolveWorkspacePath(cwd, file.path))}
+            download aria-label={t('changes.downloadAria', { name: file.display })}>
+            <IconDownloadOutlineRegular />
+          </a>
           <span id={`${pathDescriptionId}-${index}`} hidden>{resolveWorkspacePath(cwd, file.path)}</span>
         </li>
       ))}

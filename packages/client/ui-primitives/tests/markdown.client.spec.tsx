@@ -235,6 +235,19 @@ describe('MarkdownText', () => {
     expect(streamed.container.querySelector('button')).toBeNull()
   })
 
+  it('renders a download anchor when the file-mention resolver supplies an href', () => {
+    const fileMentions = {
+      resolve: (value: string) => value === 'out/report.md'
+        ? { href: '/files/workspace/out/report.md', label: 'Download out/report.md', title: 'out/report.md' }
+        : undefined,
+    }
+    const view = render(<MarkdownText text={'`out/report.md`'} fileMentions={fileMentions} />)
+    const anchor = view.getByRole('link', { name: 'Download out/report.md' })
+    expect(anchor.getAttribute('href')).toBe('/files/workspace/out/report.md')
+    expect(anchor.getAttribute('download')).not.toBeNull()
+    expect(view.container.querySelectorAll('code button')).toHaveLength(0)
+  })
+
   it('exposes the CJK strong syntax as a micromark extension needing CommonMark attention markers', () => {
     const extension = cjkFriendlyStrong()
     expect(cjkFriendlyStrong()).toBe(extension)

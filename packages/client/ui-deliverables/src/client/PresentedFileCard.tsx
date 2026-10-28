@@ -1,13 +1,14 @@
 /** File identity, Sidebar preview, and contributed native actions for one delivery. */
 import type { ReactNode } from 'react'
 import { resolveWorkspacePath } from '@deepseek-ai/dsh-util-workspace-path'
-import { FileTypeIcon, fileExtension } from '@deepseek-ai/dsh-client-ui-primitives'
+import { FileTypeIcon, IconDownloadOutlineRegular, fileExtension } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PresentedHost } from '../presented.ts'
 import { PRESENTED_SUCCESS_HOLD_MS, PRESENTED_SUCCESS_FADE_MS, type PresentedOpenPhase } from './present-open.ts'
 import { basename, type PresentedPath } from './turn-deliverables.ts'
 import type { NS } from './locales.ts'
 import css from './Deliverables.module.css'
+import { fileDownloadHref } from './file-download.ts'
 
 function cardDescription(description: string | undefined, fallback: string): string {
   const trimmed = description?.replace(/\s*(?:\([^()]*\)|（[^（）]*）)\s*$/u, '').trim()
@@ -52,7 +53,13 @@ export function PresentedFileCard({ file, cwd, phase, host, onPreview, actions, 
           <span className={css.previewHint}>{t('presented.preview')}</span>
         </span>
       </div>
-      <div className={css.actions}>{actions}</div>
+      <div className={css.actions}>
+        <a className={css.cardDownload} href={fileDownloadHref(resolveWorkspacePath(cwd, file.path))}
+          download aria-label={t('presented.downloadAria', { name })}>
+          <IconDownloadOutlineRegular />
+        </a>
+        {actions}
+      </div>
     </div>
   </div>
 }

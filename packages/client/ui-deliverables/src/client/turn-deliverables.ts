@@ -13,6 +13,7 @@ import type { MarkdownFileMentions } from '@deepseek-ai/dsh-client-ui-primitives
 import type { PresentedFile } from '@deepseek-ai/dsh-tool-present/types'
 import { isChangesEvent } from '../changes.ts'
 import { basename, isPresentedData, isPresentedFile } from '../presented.ts'
+import { fileDownloadHref } from './file-download.ts'
 
 /** A declared file with its authorized open coordinates. */
 export interface PresentedPath extends PresentedFile {
@@ -294,7 +295,7 @@ export function producedFileMentions(
       }
       const path = matches.size === 1 ? matches.values().next().value : undefined
       if (path === undefined) return undefined
-      return { open: () => { openFile(path) }, label: label(path), title: path }
+      return { open: () => { openFile(path) }, href: fileDownloadHref(path), label: label(path), title: path }
     },
   }
 }

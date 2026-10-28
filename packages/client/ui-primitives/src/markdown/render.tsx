@@ -175,7 +175,13 @@ export interface MarkdownFileMentions {
    * @returns The opener with its accessible label and full-path title, or
    * undefined when the token names no known file — it then stays inert code.
    */
-  resolve(value: string): { open: () => void; label: string; title: string } | undefined
+  resolve(value: string): {
+    /** Same-origin download URL; preferred over `open` when present. */
+    href?: string
+    open?: () => void
+    label: string
+    title: string
+  } | undefined
 }
 
 /**
@@ -313,6 +319,19 @@ function renderNode(node: Md.RootContent, key: Key, context: MarkdownRenderConte
       // Inside an anchor the token stays inert — a button cannot nest there.
       const mention = context.inLink === true ? undefined : context.fileMentions?.resolve(value)
       if (mention !== undefined) {
+        const content = <>
+          <LinkIconMedium kind={classifyLinkPath(value)} className={css.linkIcon} />
+          {value}
+        </>
+        if (mention.href !== undefined) {
+          return (
+            <code key={key}>
+              <a className={css.fileMention} href={mention.href} download title={mention.title} aria-label={mention.label}>
+                {content}
+              </a>
+            </code>
+          )
+        }
         return (
           <code key={key}>
             <button
@@ -322,8 +341,7 @@ function renderNode(node: Md.RootContent, key: Key, context: MarkdownRenderConte
               aria-label={mention.label}
               onClick={mention.open}
             >
-              <LinkIconMedium kind={classifyLinkPath(value)} className={css.linkIcon} />
-              {value}
+              {content}
             </button>
           </code>
         )

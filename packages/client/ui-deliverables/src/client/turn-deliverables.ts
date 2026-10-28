@@ -278,6 +278,7 @@ export { basename } from '../presented.ts'
  * @param openFile - The chat view's file opener.
  * @param label - Localizes the accessible open-label for a resolved path.
  * @param operations - successful mutations whose literal arguments may name the same canonical targets.
+ * @param downloadLabel - accessible label for the download anchor; omitted keeps the open label.
  * @returns The resolver MarkdownText consumes; the full path rides `title`,
  * the same disambiguator the row's chips carry.
  */
@@ -286,6 +287,7 @@ export function producedFileMentions(
   openFile: (path: string) => void,
   label: (path: string) => string,
   operations: readonly Pick<ProducedPath, 'path' | 'argumentPath'>[] = [],
+  downloadLabel?: (path: string) => string,
 ): MarkdownFileMentions {
   return {
     resolve(value) {
@@ -295,7 +297,13 @@ export function producedFileMentions(
       }
       const path = matches.size === 1 ? matches.values().next().value : undefined
       if (path === undefined) return undefined
-      return { open: () => { openFile(path) }, href: fileDownloadHref(path), label: label(path), title: path }
+      const href = fileDownloadHref(path)
+      return {
+        open: () => { openFile(path) },
+        href,
+        label: downloadLabel === undefined ? label(path) : downloadLabel(path),
+        title: path,
+      }
     },
   }
 }

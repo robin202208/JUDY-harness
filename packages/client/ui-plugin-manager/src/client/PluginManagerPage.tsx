@@ -1757,7 +1757,7 @@ export function PluginManagerPage(props: PluginManagerPageProps): ReactNode {
                   {renderGroup('basic', t('basicTitle'), basicCards)}
                   {renderGroup('extensions', t('extensionsTitle'), extensions.map(packageCard))}
                   {renderGroup('bundles', t('bundlesTitle'), mine.map(packageCard))}
-                  <IpStudio t={t} />
+                  <IpStudio t={t} onStart={(taskId, prompt) => props.startIpTask(taskId, prompt)} />
                   <IntegrationCatalog t={t} />
                 </>
               )}

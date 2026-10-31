@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { IP_TASKS, IP_UPCOMING } from './ip-studio.ts'
+import type { IpTask } from './ip-studio.ts'
 import type { Translate } from './presentation.ts'
 import css from './IpStudio.module.css'
 
@@ -38,9 +39,28 @@ async function copyText(text: string): Promise<boolean> {
  * @param props.t - the plugin page's locale seat.
  * @returns the studio section.
  */
-export function IpStudio({ t }: { t: Translate }): ReactNode {
+export function IpStudio({ t, onStart }: {
+  t: Translate
+  onStart: (taskId: string, prompt: string) => Promise<void>
+}): ReactNode {
   const [openId, setOpenId] = useState<string | undefined>(undefined)
   const [copiedId, setCopiedId] = useState<string | undefined>(undefined)
+  const [startingId, setStartingId] = useState<string | undefined>(undefined)
+  const [startErrorId, setStartErrorId] = useState<string | undefined>(undefined)
+
+  /** Copy first, then let the host open the session; a failed launch keeps the prompt on the clipboard. */
+  const start = (task: IpTask): void => {
+    if (startingId !== undefined) return
+    setStartingId(task.id)
+    setStartErrorId(undefined)
+    void copyText(task.prompt).finally(() => {
+      onStart(task.id, task.prompt).catch((reason: unknown) => {
+        console.error('[ip-studio] launch failed:', reason)
+        setStartingId(undefined)
+        setStartErrorId(task.id)
+      })
+    })
+  }
 
   useEffect(() => {
     if (copiedId === undefined) return
@@ -76,11 +96,11 @@ export function IpStudio({ t }: { t: Translate }): ReactNode {
             <div className={css.actions}>
               <button
                 type="button"
-                className={css.linkButton}
-                onClick={() => { setOpenId(openId === task.id ? undefined : task.id) }}
-                aria-expanded={openId === task.id}
+                className={css.startButton}
+                disabled={startingId !== undefined}
+                onClick={() => { start(task) }}
               >
-                {openId === task.id ? t('ip.hidePrompt') : t('ip.showPrompt')}
+                {startingId === task.id ? t('ip.starting') : t('ip.start')}
               </button>
               <button
                 type="button"
@@ -89,7 +109,16 @@ export function IpStudio({ t }: { t: Translate }): ReactNode {
               >
                 {copiedId === task.id ? t('ip.copied') : t('ip.copy')}
               </button>
+              <button
+                type="button"
+                className={css.linkButton}
+                onClick={() => { setOpenId(openId === task.id ? undefined : task.id) }}
+                aria-expanded={openId === task.id}
+              >
+                {openId === task.id ? t('ip.hidePrompt') : t('ip.showPrompt')}
+              </button>
             </div>
+            {startErrorId === task.id && <p className={css.startError} role="alert">{t('ip.startError')}</p>}
             {openId === task.id && (
               <pre className={css.prompt} aria-label={t('ip.showPrompt')}>{task.prompt}</pre>
             )}

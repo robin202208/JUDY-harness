@@ -99,6 +99,39 @@ export function apply(ctx: ClientContext): void {
   // and the sidebar's entry selects it. What is installed and switched on is
   // the page's own; a plugin's configuration arrives through the slots the
   // page declares here, so the page never names a configurable plugin.
+  // IP studio launch: the card copies the prompt first, then this creates a
+  // session on the default preset, opens it and sends the prompt. The ip-ops
+  // preset is not mounted by this Web bundle yet, so the persona travels in
+  // the prompt itself; a failed launch leaves the prompt on the clipboard.
+  const startIpTask = async (taskId: string, prompt: string): Promise<void> => {
+    const sessions = ctx.get('sessions') as unknown as {
+      create: (opts: { agentPreset?: string }) => Promise<string>
+      binding: (id: string) => {
+        session: {
+          prompt: (
+            content: readonly { type: 'text'; text: string }[],
+            mode: 'queue',
+          ) => Promise<{ ok: boolean; error?: { code: string; message: string } }>
+        }
+      } | undefined
+    } | undefined
+    const workspaceNav = ctx.get('uiWorkspace') as unknown as { openSession: (id: string) => void } | undefined
+    if (sessions === undefined || workspaceNav === undefined) {
+      throw new Error(`IP studio launch unavailable (task ${taskId})`)
+    }
+    const id = await sessions.create({})
+    workspaceNav.openSession(id)
+    const deadline = Date.now() + 5000
+    let binding = sessions.binding(id)
+    while (binding === undefined && Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      binding = sessions.binding(id)
+    }
+    if (binding === undefined) throw new Error(`session ${id} opened without a binding`)
+    const result = await binding.session.prompt([{ type: 'text', text: prompt }], 'queue')
+    if (!result.ok) throw new Error(result.error?.message ?? 'prompt rejected')
+  }
+
   const configLedger = configLedgerSource(ctx)
   const face = controller.inject(configLedger, tabLedgerSource(ctx), text => ctx.locale.resolveText(text))
   ctx.slots.inject('shell.overlay', () => ctx.slots.register({
@@ -116,7 +149,7 @@ export function apply(ctx: ClientContext): void {
       key: PANEL_ID,
       locale: NS,
       store,
-      inject: () => face,
+      inject: () => ({ ...face, startIpTask }),
       children: {
         'plugins.add.actions': { kind: 'list', scope: 'root' },
         'plugins.tab': { kind: 'list', scope: 'root' },

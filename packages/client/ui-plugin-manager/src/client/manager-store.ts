@@ -340,6 +340,14 @@ export interface PluginManagerFace {
   ensure: () => void
   /** Read the Host again. */
   refresh: () => void
+  /**
+   * Launch one IP studio task: create a fresh session, open it and send the
+   * prompt (the persona travels in the prompt until the ip-ops preset is
+   * mounted by the Web bundle).
+   * @param taskId - the studio task being started.
+   * @param prompt - the prompt to send as one text block.
+   */
+  startIpTask: (taskId: string, prompt: string) => Promise<void>
   openInstall: () => void
   /**
    * Open the install dialog with a version the person confirmed elsewhere, such as a Discover entry, and start

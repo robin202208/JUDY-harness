@@ -24,6 +24,7 @@ import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStor
 import type { createNavigationStore } from './navigation-store.ts'
 import { rowConfigKey, type OfficialItem } from './config-ledger.ts'
 import { IntegrationCatalog } from './IntegrationCatalog.tsx'
+import { IpStudio } from './IpStudio.tsx'
 import { INSTALL_GIT_EXAMPLE, INSTALL_PATH_EXAMPLE, type PluginManagerLocaleKey } from './locales.ts'
 import {
   asksMirror, githubRecoveryRegistry, isInstallPending, offeredRegistries, rowKey,
@@ -1756,6 +1757,7 @@ export function PluginManagerPage(props: PluginManagerPageProps): ReactNode {
                   {renderGroup('basic', t('basicTitle'), basicCards)}
                   {renderGroup('extensions', t('extensionsTitle'), extensions.map(packageCard))}
                   {renderGroup('bundles', t('bundlesTitle'), mine.map(packageCard))}
+                  <IpStudio t={t} />
                   <IntegrationCatalog t={t} />
                 </>
               )}

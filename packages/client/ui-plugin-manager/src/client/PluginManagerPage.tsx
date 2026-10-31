@@ -23,6 +23,7 @@ import {
 import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-client-ui-slots'
 import type { createNavigationStore } from './navigation-store.ts'
 import { rowConfigKey, type OfficialItem } from './config-ledger.ts'
+import { IntegrationCatalog } from './IntegrationCatalog.tsx'
 import { INSTALL_GIT_EXAMPLE, INSTALL_PATH_EXAMPLE, type PluginManagerLocaleKey } from './locales.ts'
 import {
   asksMirror, githubRecoveryRegistry, isInstallPending, offeredRegistries, rowKey,
@@ -1755,6 +1756,7 @@ export function PluginManagerPage(props: PluginManagerPageProps): ReactNode {
                   {renderGroup('basic', t('basicTitle'), basicCards)}
                   {renderGroup('extensions', t('extensionsTitle'), extensions.map(packageCard))}
                   {renderGroup('bundles', t('bundlesTitle'), mine.map(packageCard))}
+                  <IntegrationCatalog t={t} />
                 </>
               )}
               {/* A failed package read trails the groups it left incomplete: right under the groups on a

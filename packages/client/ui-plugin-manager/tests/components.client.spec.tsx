@@ -133,6 +133,7 @@ function renderTab(
     cancelConfirm: vi.fn(),
     setRowEnabled: vi.fn(),
     dismissNotice: vi.fn(),
+    startIpTask: vi.fn(async () => {}),
   }
   const unusedStandardHook = (): never => { throw new Error('Plugin manager fixture does not provide global state') }
   const standard = {

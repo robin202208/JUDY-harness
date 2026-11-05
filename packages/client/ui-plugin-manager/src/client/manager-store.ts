@@ -610,11 +610,12 @@ export class PluginManagerController {
    * @param configLedger - the projection of the plugins carrying configuration, bound beside the tab's own state.
    * @param pluginTabs - the tabs other plugins contribute through `plugins.tab`.
    * @param resolveText - render-time package text resolution supplied by the locale service.
-   * @returns the tab's snapshot sources and its actions.
+   * @returns the tab's snapshot sources and its actions, except `startIpTask`: the
+   *   plugin entry composes that one, because it needs a session and the workspace nav.
    */
   inject(
     configLedger: HostObservable<ConfigLedger>, pluginTabs: HostObservable<readonly PluginTab[]>, resolveText: PluginManagerFace['resolveText'],
-  ): PluginManagerFace {
+  ): Omit<PluginManagerFace, 'startIpTask'> {
     return {
       resolveText,
       hooks: { pluginManager: this.store, configLedger, pluginTabs, configurations: this.ctx.configForms.describe() },
